@@ -4,14 +4,16 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
+	<!--parent>
 		<groupId>connector</groupId>
 		<artifactId>ai-connector</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
-	</parent>
+	</parent-->
 
 	<artifactId>binance-futures-client</artifactId>
-  	<packaging>jar</packaging>
+	<groupId>sanzol.aitrader.binance-futures</groupId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
 
 	<dependencies>
 

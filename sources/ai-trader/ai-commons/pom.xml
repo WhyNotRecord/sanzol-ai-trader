@@ -4,14 +4,15 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
+	<!--parent>
 		<groupId>sanzol.aitrader</groupId>
 		<artifactId>ai-trader</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
-	</parent>
+	</parent-->
 	
 	<groupId>sanzol.aitrader.commons</groupId>
 	<artifactId>ai-commons</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
   
 	<dependencies>
@@ -80,7 +81,7 @@
 		<dependency>
 			<groupId>com.cronutils</groupId>
 			<artifactId>cron-utils</artifactId>
-			<version>9.1.3</version>
+			<version>9.1.8</version>
 		</dependency>
 
 	</dependencies>
