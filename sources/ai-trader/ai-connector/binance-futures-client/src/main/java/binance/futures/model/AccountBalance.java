@@ -9,7 +9,7 @@ public class AccountBalance
 {
 	private String asset;
 	private BigDecimal balance;
-	private BigDecimal withdrawAvailable;
+	private BigDecimal availableBalance;
 
 	public String getAsset()
 	{
@@ -31,14 +31,14 @@ public class AccountBalance
 		this.balance = balance;
 	}
 
-	public BigDecimal getWithdrawAvailable()
+	public BigDecimal getAvailableBalance()
 	{
-		return withdrawAvailable;
+		return availableBalance;
 	}
 
-	public void setWithdrawAvailable(BigDecimal withdrawAvailable)
+	public void setAvailableBalance(BigDecimal availableBalance)
 	{
-		this.withdrawAvailable = withdrawAvailable;
+		this.availableBalance = availableBalance;
 	}
 
 }
