@@ -335,6 +335,47 @@ public class SignedClient
 		return order;			
 	}
 
+	public Order queryOrder(String symbol, Long orderId, String origClientOrderId) throws Exception
+	{
+		final String path = "/fapi/v1/order";
+
+		String recvWindow = Long.toString(60_000L);
+		String timestamp = Long.toString(System.currentTimeMillis());
+
+		WebTarget target = ClientBuilder.newClient()
+			.target(ApiConstants.BASE_URL)
+			.path(path)
+			.queryParam("symbol", symbol)
+			.queryParam("orderId", orderId)
+			.queryParam("origClientOrderId", origClientOrderId)
+			.queryParam("recvWindow", recvWindow)
+			.queryParam("timestamp", timestamp);
+
+		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
+		URI uri = target.queryParam("signature", signature).getUri();
+
+		HttpClient httpClient = HttpClient.newBuilder().build();
+		HttpRequest request = HttpRequest.newBuilder()
+            .uri(uri)
+            .header("X-MBX-APIKEY", apiKey)
+            .GET()
+            .build();
+
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+
+		if(response.statusCode() != 200)
+		{
+			ResponseStatus responseStatus = ResponseStatus.from(response.body());
+			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+		}
+
+		String jsonString = response.body();
+		ObjectMapper mapper = new ObjectMapper();
+		Order order = mapper.readValue(jsonString, Order.class);
+
+		return order;
+	}
+
 	// --------------------------------------------------------------------
 
 	public String startUserDataStream() throws Exception 
