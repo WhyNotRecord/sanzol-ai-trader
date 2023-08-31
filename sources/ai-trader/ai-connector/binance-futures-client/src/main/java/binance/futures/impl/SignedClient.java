@@ -199,7 +199,46 @@ public class SignedClient
 		boolean dualSidePosition = parent.path("dualSidePosition").asBoolean();
 		
 		return dualSidePosition ? PositionMode.HEDGE : PositionMode.ONE_WAY;
-	}	
+	}
+
+	public String getAccountData() throws Exception
+	{
+		final String path = "/fapi/v2/account";
+
+		String recvWindow = Long.toString(60_000L);
+		String timestamp = Long.toString(System.currentTimeMillis());
+
+		WebTarget target = ClientBuilder.newClient()
+			.target(ApiConstants.BASE_URL)
+			.path(path)
+			.queryParam("recvWindow", recvWindow)
+			.queryParam("timestamp", timestamp);
+
+		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
+		URI uri = target.queryParam("signature", signature).getUri();
+
+		HttpClient httpClient = HttpClient.newBuilder().build();
+		HttpRequest request = HttpRequest.newBuilder()
+            .uri(uri)
+            .header("X-MBX-APIKEY", apiKey)
+            .GET()
+            .build();
+
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+
+		if (response.statusCode() != 200) {
+			ResponseStatus responseStatus = ResponseStatus.from(response.body());
+			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+		}
+
+		return response.body();
+	}
+
+	public boolean canTrade() throws Exception {
+		String accountData = getAccountData();
+		JsonNode parent= new ObjectMapper().readTree(accountData);
+		return parent.path("canTrade").asBoolean();
+	}
 
 	public String setLeverage(String symbol, int leverage) throws Exception
 	{
