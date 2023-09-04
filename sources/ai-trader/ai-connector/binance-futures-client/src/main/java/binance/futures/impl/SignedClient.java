@@ -201,6 +201,40 @@ public class SignedClient
 		return dualSidePosition ? PositionMode.HEDGE : PositionMode.ONE_WAY;
 	}
 
+	public String setPositionMode(boolean hedge) throws Exception
+	{
+		final String path = "/fapi/v1/positionSide/dual";
+
+		String recvWindow = Long.toString(60_000L);
+		String timestamp = Long.toString(System.currentTimeMillis());
+
+		WebTarget target = ClientBuilder.newClient()
+				.target(ApiConstants.BASE_URL)
+				.path(path)
+				.queryParam("dualSidePosition", String.valueOf(hedge))
+				.queryParam("recvWindow", recvWindow)
+				.queryParam("timestamp", timestamp);
+
+		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
+		URI uri = target.queryParam("signature", signature).getUri();
+
+		HttpClient httpClient = HttpClient.newBuilder().build();
+		HttpRequest request = HttpRequest.newBuilder()
+				.uri(uri)
+				.header("X-MBX-APIKEY", apiKey)
+				.POST(HttpRequest.BodyPublishers.noBody())
+				.build();
+
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+
+		if (response.statusCode() != 200) {
+			ResponseStatus responseStatus = ResponseStatus.from(response.body());
+			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+		}
+
+		return response.body();
+	}
+
 	public String getAccountData() throws Exception
 	{
 		final String path = "/fapi/v2/account";
