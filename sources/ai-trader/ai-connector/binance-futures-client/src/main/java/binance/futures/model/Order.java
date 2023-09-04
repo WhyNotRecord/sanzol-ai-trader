@@ -2,10 +2,11 @@ package binance.futures.model;
 
 import java.math.BigDecimal;
 
+import aitrader.util.container.AbstractOrder;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Order
+public class Order extends AbstractOrder
 {
 	private Long orderId;
 	private String clientOrderId;
