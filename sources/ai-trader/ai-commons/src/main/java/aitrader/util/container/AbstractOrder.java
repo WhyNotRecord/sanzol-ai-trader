@@ -6,6 +6,8 @@ import java.util.Map;
 public abstract class AbstractOrder {
   protected Map<String, Object> parameters = new HashMap<>();
 
+  public abstract float getPriceF();
+
   public void setParameter(String name, Object value) {
     parameters.put(name, value);
   }

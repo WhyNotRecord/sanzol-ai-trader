@@ -272,4 +272,13 @@ public class Order extends AbstractOrder
 				+ ", priceProtect=" + priceProtect + "]";
 	}
 
+	@Override
+	public float getPriceF() {
+		float result = getAvgPrice().floatValue();
+		if (result == 0.f)
+			result = getPrice().floatValue();
+		if (result == 0.f)
+			result = getStopPrice().floatValue();
+		return result;
+	}
 }
