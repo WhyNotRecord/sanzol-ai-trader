@@ -274,10 +274,12 @@ public class Order extends AbstractOrder
 
 	@Override
 	public float getPriceF() {
-		float result = getAvgPrice().floatValue();
-		if (result == 0.f)
+		float result = 0.f;
+		if (getAvgPrice() != null)
+			result = getAvgPrice().floatValue();
+		if (result == 0.f && getPrice() != null)
 			result = getPrice().floatValue();
-		if (result == 0.f)
+		if (result == 0.f && getStopPrice() != null)
 			result = getStopPrice().floatValue();
 		return result;
 	}
