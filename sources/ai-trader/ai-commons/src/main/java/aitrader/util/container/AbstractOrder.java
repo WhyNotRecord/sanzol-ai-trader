@@ -7,6 +7,12 @@ public abstract class AbstractOrder {
   protected Map<String, Object> parameters = new HashMap<>();
 
   public abstract float getPriceF();
+  public abstract float getAmountF();
+
+  public abstract void updateStatus(String status);
+
+  public abstract boolean isNew();
+  public abstract boolean isFilled();
 
   public void setParameter(String name, Object value) {
     parameters.put(name, value);

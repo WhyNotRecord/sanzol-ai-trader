@@ -30,7 +30,7 @@ import binance.futures.model.SymbolTicker;
 public class UnsignedClient
 {
 
-	public static List<Candle> getKlines(String symbol, IntervalType interval, int limit) throws Exception
+	public static List<Candle> getKlines(String symbol, IntervalType interval, int limit, Long startTime) throws Exception
 	{
 		final String path = "/fapi/v1/klines";
 
@@ -42,6 +42,8 @@ public class UnsignedClient
 			.queryParam("symbol", symbol)
 			.queryParam("interval", interval.getCode())
 			.queryParam("limit", limit);
+		if (startTime != null)
+			target.queryParam("startTime", startTime);
 
 		URI uri = target.getUri();
 
@@ -69,11 +71,11 @@ public class UnsignedClient
 		{
 			Candle kline = new Candle();
 
-			kline.setOpenTime(Long.valueOf(entry[0]));
-			kline.setOpenPrice(new BigDecimal(entry[1]));
-			kline.setHighPrice(new BigDecimal(entry[2]));
-			kline.setLowPrice(new BigDecimal(entry[3]));
-			kline.setClosePrice(new BigDecimal(entry[4]));
+			kline.setOpenTime(Long.parseLong(entry[0]));
+			kline.setOpenPrice(Float.parseFloat(entry[1]));
+			kline.setHighPrice(Float.parseFloat(entry[2]));
+			kline.setLowPrice(Float.parseFloat(entry[3]));
+			kline.setClosePrice(Float.parseFloat(entry[4]));
 			kline.setVolume(new BigDecimal(entry[5]));
 			kline.setQuoteVolume(new BigDecimal(entry[7]));
 			kline.setCount(Long.valueOf(entry[8]));

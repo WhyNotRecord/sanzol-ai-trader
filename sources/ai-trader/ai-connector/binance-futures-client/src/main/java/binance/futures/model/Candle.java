@@ -11,10 +11,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class Candle
 {
 	private long openTime;
-	private BigDecimal openPrice;
-	private BigDecimal highPrice;
-	private BigDecimal lowPrice;
-	private BigDecimal closePrice;
+	private float openPrice;
+	private float highPrice;
+	private float lowPrice;
+	private float closePrice;
 	private BigDecimal volume;
 	private BigDecimal quoteVolume;
 	private Long count;
@@ -24,9 +24,10 @@ public class Candle
 		//
 	}
 
-	public Candle(long openTime, BigDecimal openPrice, BigDecimal highPrice, BigDecimal lowPrice, BigDecimal closePrice, BigDecimal volume, BigDecimal quoteVolume, Long count)
+	public Candle(long openTime, float openPrice, float highPrice, float lowPrice, float closePrice,
+								BigDecimal volume, BigDecimal quoteVolume, Long count)
 	{
-		this.openPrice = openPrice;
+		this.openTime = openTime;
 		this.openPrice = openPrice;
 		this.highPrice = highPrice;
 		this.lowPrice = lowPrice;
@@ -46,42 +47,42 @@ public class Candle
 		this.openTime = openTime;
 	}
 
-	public BigDecimal getOpenPrice()
+	public float getOpenPrice()
 	{
 		return openPrice;
 	}
 
-	public void setOpenPrice(BigDecimal openPrice)
+	public void setOpenPrice(float openPrice)
 	{
 		this.openPrice = openPrice;
 	}
 
-	public BigDecimal getHighPrice()
+	public float getHighPrice()
 	{
 		return highPrice;
 	}
 
-	public void setHighPrice(BigDecimal highPrice)
+	public void setHighPrice(float highPrice)
 	{
 		this.highPrice = highPrice;
 	}
 
-	public BigDecimal getLowPrice()
+	public float getLowPrice()
 	{
 		return lowPrice;
 	}
 
-	public void setLowPrice(BigDecimal lowPrice)
+	public void setLowPrice(float lowPrice)
 	{
 		this.lowPrice = lowPrice;
 	}
 
-	public BigDecimal getClosePrice()
+	public float getClosePrice()
 	{
 		return closePrice;
 	}
 
-	public void setClosePrice(BigDecimal closePrice)
+	public void setClosePrice(float closePrice)
 	{
 		this.closePrice = closePrice;
 	}
