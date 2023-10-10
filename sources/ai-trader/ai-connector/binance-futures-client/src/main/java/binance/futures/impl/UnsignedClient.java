@@ -43,7 +43,7 @@ public class UnsignedClient
 			.queryParam("interval", interval.getCode())
 			.queryParam("limit", limit);
 		if (startTime != null)
-			target.queryParam("startTime", startTime);
+			target = target.queryParam("startTime", startTime);
 
 		URI uri = target.getUri();
 
