@@ -18,7 +18,7 @@ public class UnsignedClient_
 		List<SymbolTicker> lstSymbolTickers = UnsignedClient.getSymbolTickers();
 		lstSymbolTickers.forEach(s -> System.out.println(s));		
 
-		List<Candle> lstCandles = UnsignedClient.getKlines("BTCUSDT", IntervalType._1h, 5);
+		List<Candle> lstCandles = UnsignedClient.getKlines("BTCUSDT", IntervalType._1h, 5, null);
 		lstCandles.forEach(s -> System.out.println(s));		
 
 		Depth depth = UnsignedClient.getDepth("BTCUSDT", 5);
