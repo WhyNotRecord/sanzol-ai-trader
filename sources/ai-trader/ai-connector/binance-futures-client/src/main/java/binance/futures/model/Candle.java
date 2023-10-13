@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -127,9 +128,13 @@ public class Candle
 	// ---- TO STRING ---------------------------------------------------------
 	
 	@Override
-	public String toString()
+	/*public String toString()
 	{
 		return "Candle [openPrice=" + openPrice + ", highPrice=" + highPrice + ", lowPrice=" + lowPrice + ", closePrice=" + closePrice + ", volume=" + volume + ", quoteVolume=" + quoteVolume + ", count=" + count + "]";
+	}*/
+	public String toString() {
+		return String.format("Time: %s. Low: %s. High: %s. Open: %s. Close: %s. Volume: %s. Quoted vol: %s",
+				new Date(openTime), lowPrice, highPrice, openPrice, closePrice, volume, quoteVolume);
 	}
 
 }
