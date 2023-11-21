@@ -6,11 +6,14 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
+import binance.futures.model.AccountInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -31,103 +34,107 @@ import binance.futures.model.AccountBalance;
 import binance.futures.model.Order;
 import binance.futures.model.PositionRisk;
 
-public class SignedClient
-{
+public class SignedClient {
 	private String apiKey;
 	private String secretKey;
 
-	public SignedClient(String apiKey, String secretKey)
-	{
+	public SignedClient(String apiKey, String secretKey) {
 		this.apiKey = apiKey;
 		this.secretKey = secretKey;
 	}
 
-	public static SignedClient create(String apiKey, String secretKey)
-	{
+	public static SignedClient create(String apiKey, String secretKey) {
 		return new SignedClient(apiKey, secretKey);
 	}
 
 	// --------------------------------------------------------------------
 
-	public List<AccountBalance> getBalance() throws Exception
-	{
+	public List<AccountBalance> getBalance() throws Exception {
 		final String path = "/fapi/v2/balance";
 
 		String recvWindow = Long.toString(60_000L);
 		String timestamp = Long.toString(System.currentTimeMillis());
 
 		WebTarget target = ClientBuilder.newClient()
-			.target(ApiConstants.BASE_URL)
-			.path(path)
-			.queryParam("recvWindow", recvWindow)
-			.queryParam("timestamp", timestamp);
+				.target(ApiConstants.BASE_URL)
+				.path(path)
+				.queryParam("recvWindow", recvWindow)
+				.queryParam("timestamp", timestamp);
 
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
 		HttpClient httpClient = HttpClient.newBuilder().build();
 		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .header("X-MBX-APIKEY", apiKey)
-            .GET()
-            .build();
+				.uri(uri)
+				.header("X-MBX-APIKEY", apiKey)
+				.GET()
+				.build();
 
-		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());		
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
-		if(response.statusCode() != 200)
-		{
+		if (response.statusCode() != 200) {
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
 			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
 		}
 
 		String jsonString = response.body();
 		ObjectMapper mapper = new ObjectMapper();
-		List<AccountBalance> lst = mapper.readValue(jsonString, new TypeReference<List<AccountBalance>>(){});
+		List<AccountBalance> lst = mapper.readValue(jsonString, new TypeReference<List<AccountBalance>>() {
+		});
 
-		return lst;	
+		return lst;
 	}
-	
-	public List<PositionRisk> getPositionRisk() throws Exception
-	{
+
+	public List<PositionRisk> getPositionRisk() throws Exception {
 		final String path = "/fapi/v1/positionRisk";
 
 		String recvWindow = Long.toString(60_000L);
 		String timestamp = Long.toString(System.currentTimeMillis());
 
 		WebTarget target = ClientBuilder.newClient()
-			.target(ApiConstants.BASE_URL)
-			.path(path)
-			.queryParam("recvWindow", recvWindow)
-			.queryParam("timestamp", timestamp);
+				.target(ApiConstants.BASE_URL)
+				.path(path)
+				.queryParam("recvWindow", recvWindow)
+				.queryParam("timestamp", timestamp);
 
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
 		HttpClient httpClient = HttpClient.newBuilder().build();
 		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .header("X-MBX-APIKEY", apiKey)
-            .GET()
-            .build();
+				.uri(uri)
+				.header("X-MBX-APIKEY", apiKey)
+				.GET()
+				.build();
 
-		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());		
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
-		if(response.statusCode() != 200)
-		{
+		if (response.statusCode() != 200) {
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
 			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
 		}
 
 		String jsonString = response.body();
 		ObjectMapper mapper = new ObjectMapper();
-		List<PositionRisk> lst = mapper.readValue(jsonString, new TypeReference<List<PositionRisk>>(){});
+		List<PositionRisk> lst = mapper.readValue(jsonString, new TypeReference<List<PositionRisk>>() {
+		});
 
-		return lst;	
+		return lst;
 	}
-	
-	public List<Order> getOpenOrders() throws Exception
+
+	public List<Order> getOpenOrders() throws Exception {
+		return getOrders(true, null);
+	}
+
+	public List<Order> getFilledOrders(String symbol) throws Exception {
+		List<Order> orders = getOrders(false, symbol);
+		return orders.stream().filter(Order::isFilled).collect(Collectors.toList());
+	}
+
+	public List<Order> getOrders(boolean openOnly, String symbol) throws Exception
 	{
-		final String path = "/fapi/v1/openOrders";
+		final String path = openOnly ? "/fapi/v1/openOrders" : "/fapi/v1/allOrders";
 
 		String recvWindow = Long.toString(60_000L);
 		String timestamp = Long.toString(System.currentTimeMillis());
@@ -137,6 +144,8 @@ public class SignedClient
 			.path(path)
 			.queryParam("recvWindow", recvWindow)
 			.queryParam("timestamp", timestamp);
+		if (symbol != null)
+			target = target.queryParam("symbol", symbol);
 
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
@@ -235,7 +244,7 @@ public class SignedClient
 		return response.body();
 	}
 
-	public String getAccountData() throws Exception
+	public AccountInfo getAccountData() throws Exception
 	{
 		final String path = "/fapi/v2/account";
 
@@ -265,13 +274,16 @@ public class SignedClient
 			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
 		}
 
-		return response.body();
+		String jsonString = response.body();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		AccountInfo result = mapper.readValue(jsonString, AccountInfo.class);
+		return result;
 	}
 
 	public boolean canTrade() throws Exception {
-		String accountData = getAccountData();
-		JsonNode parent= new ObjectMapper().readTree(accountData);
-		return parent.path("canTrade").asBoolean();
+		AccountInfo accountData = getAccountData();
+		return accountData.canTrade();
 	}
 
 	public String setLeverage(String symbol, int leverage) throws Exception

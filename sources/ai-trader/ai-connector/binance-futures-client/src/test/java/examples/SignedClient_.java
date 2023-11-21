@@ -1,7 +1,9 @@
 package examples;
+import java.io.IOException;
 import java.util.List;
 
 import binance.futures.impl.SignedClient;
+import binance.futures.model.AccountInfo;
 import binance.futures.model.Order;
 
 public class SignedClient_
@@ -9,8 +11,7 @@ public class SignedClient_
 
 	public static void main(String[] args) throws Exception
 	{
-		PrivateConfig.load();
-		SignedClient client = SignedClient.create(PrivateConfig.getApiKey(), PrivateConfig.getSecretKey());
+		SignedClient client = getSignedClient();
 
 		/*
 		System.out.println("");
@@ -40,6 +41,25 @@ public class SignedClient_
 		List<Order> lstOrders = client.getOpenOrders();
 		lstOrders.forEach(s -> System.out.println(s.getSymbol() + "\t\t" + s.getAvgPrice() + "\t\t" + s.getOrigQty()));
 
+		System.out.println("");
+		List<Order> lstOpOrders = client.getFilledOrders("BTCUSDT");
+		lstOpOrders.forEach(s -> System.out.println(s.getSymbol() + "\t\t" + s.getAvgPrice() + "\t\t" + s.getOrigQty()));
+
+		System.out.println("");
+		AccountInfo info = client.getAccountData();
+		for (AccountInfo.AccountPosition position : info.getPositions()) {
+			System.out.println(position);
+		}
+		info.canTrade();
+	}
+
+	private static SignedClient getSignedClient() throws IOException {
+		PrivateConfig.load();
+		return SignedClient.create(PrivateConfig.getApiKey(), PrivateConfig.getSecretKey());
+	}
+
+	private static SignedClient getSignedClientAlt() throws IOException {
+		return SignedClient.create("foo", "bar");
 	}
 
 }
