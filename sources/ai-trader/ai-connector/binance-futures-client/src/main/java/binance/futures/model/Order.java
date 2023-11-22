@@ -1,6 +1,7 @@
 package binance.futures.model;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 import aitrader.util.container.AbstractOrder;
 import binance.futures.enums.OrderStatus;
@@ -8,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Order extends AbstractOrder
-{
+{//TODO implement light version of library with float values instead of BigDecimal
 	private Long orderId;
 	private String clientOrderId;
 	private String symbol;
@@ -264,13 +265,12 @@ public class Order extends AbstractOrder
 	}
 
 	@Override
-	public String toString() // TODO : delete me
+	public String toString()
 	{
-		return "Order [orderId=" + orderId + ", clientOrderId=" + clientOrderId + ", symbol=" + symbol + ", cumQty=" + cumQty + ", cumQuote=" + cumQuote + ", executedQty="
-				+ executedQty + ", avgPrice=" + avgPrice + ", origQty=" + origQty + ", price=" + price + ", reduceOnly=" + reduceOnly + ", side=" + side + ", positionSide="
-				+ positionSide + ", status=" + status + ", stopPrice=" + stopPrice + ", closePosition=" + closePosition + ", timeInForce=" + timeInForce + ", type=" + type
-				+ ", origType=" + origType + ", activationPrice=" + activationPrice + ", priceRate=" + priceRate + ", updateTime=" + updateTime + ", workingType=" + workingType
-				+ ", priceProtect=" + priceProtect + "]";
+		return "Order [orderId=" + orderId + ", clientOrderId=" + clientOrderId + ", symbol=" + symbol + ", cumQty=" + cumQty + ", executedQty="
+				+ executedQty + ", avgPrice=" + avgPrice + ", origQty=" + origQty + ", price=" + price + ", side=" + side + ", positionSide="
+				+ positionSide + ", status=" + status + ", stopPrice=" + stopPrice + ", timeInForce=" + timeInForce + ", type=" + type
+				+ ", origType=" + origType + ", activationPrice=" + activationPrice + ", priceRate=" + priceRate + ", updateTime=" + updateTime + "]";
 	}
 
 	@Override
@@ -309,5 +309,17 @@ public class Order extends AbstractOrder
 	@Override
 	public boolean isFilled() {
 		return OrderStatus.FILLED.name().equals(getStatus());
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof Order) {
+			Order oo = (Order) obj;
+			if (Objects.equals(oo.getClientOrderId(), this.getClientOrderId()) &&
+					Objects.equals(oo.getSymbol(), this.getSymbol()) &&
+					Objects.equals(oo.getSide(), this.getSide()))
+				return true;
+		}
+		return super.equals(obj);
 	}
 }
