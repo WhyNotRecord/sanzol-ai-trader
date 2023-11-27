@@ -1,6 +1,7 @@
 package binance.futures.model;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.Objects;
 
 import aitrader.util.container.AbstractOrder;
@@ -270,7 +271,8 @@ public class Order extends AbstractOrder
 		return "Order [orderId=" + orderId + ", clientOrderId=" + clientOrderId + ", symbol=" + symbol + ", cumQty=" + cumQty + ", executedQty="
 				+ executedQty + ", avgPrice=" + avgPrice + ", origQty=" + origQty + ", price=" + price + ", side=" + side + ", positionSide="
 				+ positionSide + ", status=" + status + ", stopPrice=" + stopPrice + ", timeInForce=" + timeInForce + ", type=" + type
-				+ ", origType=" + origType + ", activationPrice=" + activationPrice + ", priceRate=" + priceRate + ", updateTime=" + updateTime + "]";
+				+ ", origType=" + origType+ ", workingType=" + workingType + ", activationPrice=" + activationPrice + ", priceRate=" + priceRate +
+				", updateTime=" + new Date(updateTime) + "]";
 	}
 
 	@Override
