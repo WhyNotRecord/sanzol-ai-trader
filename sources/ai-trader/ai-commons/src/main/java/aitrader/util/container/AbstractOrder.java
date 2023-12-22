@@ -8,6 +8,7 @@ public abstract class AbstractOrder {
 
   public abstract float getPriceF();
   public abstract float getAmountF();
+  public abstract Long getUpdateTime();
 
   public abstract void updateStatus(String status);
 

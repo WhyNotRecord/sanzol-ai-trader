@@ -61,11 +61,7 @@ public class StochasticRSI
 		double sum = 0;
 		int count = 0;
 
-		for (int i = 0; i < periods; i++)
-		{
-			if (index - i < 0)
-				break;
-
+		for (int i = 0; i < periods && index - i >= 0; i++) {
 			if (field == FieldType.x)
 				sum = sum + entries[index - i].getK1();
 			else
