@@ -4,12 +4,12 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Objects;
 
-import aitrader.util.container.AbstractOrder;
+//import aitrader.util.container.AbstractOrder;
 import binance.futures.enums.OrderStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Order extends AbstractOrder
+public class Order //extends AbstractOrder
 {//TODO implement light version of library with float values instead of BigDecimal
 	private Long orderId;
 	private String clientOrderId;
@@ -275,7 +275,7 @@ public class Order extends AbstractOrder
 				", updateTime=" + new Date(updateTime) + "]";
 	}
 
-	@Override
+	/*@Override
 	public float getPriceF() {
 		float result = 0.f;
 		if (getAvgPrice() != null)
@@ -306,9 +306,8 @@ public class Order extends AbstractOrder
 	public boolean isNew() {
 
 		return OrderStatus.NEW.name().equals(getStatus());
-	}
+	}*/
 
-	@Override
 	public boolean isFilled() {
 		return OrderStatus.FILLED.name().equals(getStatus());
 	}

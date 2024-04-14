@@ -322,6 +322,41 @@ public class SignedClient {
 		return response.body();
 	}
 
+	public String getLeverageBracket(String symbol) throws Exception
+	{
+		final String path = "/fapi/v1/leverageBracket";
+
+		String recvWindow = Long.toString(60_000L);
+		String timestamp = Long.toString(System.currentTimeMillis());
+
+		WebTarget target = ClientBuilder.newClient()
+			.target(ApiConstants.BASE_URL)
+			.path(path)
+			.queryParam("symbol", symbol)
+			.queryParam("recvWindow", recvWindow)
+			.queryParam("timestamp", timestamp);
+
+		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
+		URI uri = target.queryParam("signature", signature).getUri();
+
+		HttpClient httpClient = HttpClient.newBuilder().build();
+		HttpRequest request = HttpRequest.newBuilder()
+            .uri(uri)
+            .header("X-MBX-APIKEY", apiKey)
+            .GET()
+            .build();
+
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+
+		if(response.statusCode() != 200)
+		{
+			ResponseStatus responseStatus = ResponseStatus.from(response.body());
+			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+		}
+
+		return response.body();
+	}
+
 	public Order postOrder(String symbol, OrderSide side, PositionSide positionSide, OrderType orderType, TimeInForce timeInForce,
 						   String quantity, String price, Boolean reduceOnly, String newClientOrderId, String stopPrice,
 						   WorkingType workingType, NewOrderRespType newOrderRespType, Boolean closePosition) throws Exception

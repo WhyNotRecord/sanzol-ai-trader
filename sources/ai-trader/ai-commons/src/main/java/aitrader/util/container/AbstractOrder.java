@@ -3,6 +3,7 @@ package aitrader.util.container;
 import java.util.HashMap;
 import java.util.Map;
 
+@Deprecated
 public abstract class AbstractOrder {
   protected Map<String, Object> parameters = new HashMap<>();
 
@@ -27,7 +28,7 @@ public abstract class AbstractOrder {
     return hasParameter(name) ? parameters.get(name) : null;
   }
 
-  public void absorbParameters(AbstractOrder order) {
+  /*public void absorbParameters(AbstractOrder order) {
     parameters.putAll(order.parameters);
-  }
+  }*/
 }
