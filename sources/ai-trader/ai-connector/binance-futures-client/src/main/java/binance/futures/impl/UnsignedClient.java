@@ -7,6 +7,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.ws.rs.client.Client;
@@ -115,6 +116,37 @@ public class UnsignedClient
 		ExchangeInfo exchangeInfo = mapper.readValue(jsonString, ExchangeInfo.class);
 
 		return exchangeInfo;			
+	}
+
+	public static long getServerTime() throws Exception
+	{
+		final String path = "/fapi/v1/time";
+
+		WebTarget target = ClientBuilder.newClient()
+			.target(ApiConstants.BASE_URL)
+			.path(path);
+
+		URI uri = target.getUri();
+
+		HttpClient httpClient = HttpClient.newBuilder().build();
+		HttpRequest request = HttpRequest.newBuilder()
+            .uri(uri)
+            .GET()
+            .build();
+
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+
+		if(response.statusCode() != 200)
+		{
+			ResponseStatus responseStatus = ResponseStatus.from(response.body());
+			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+		}
+
+		String jsonString = response.body();
+		ObjectMapper mapper = new ObjectMapper();
+		HashMap time = mapper.readValue(jsonString, HashMap.class);
+
+		return (long) time.get("serverTime");
 	}
 
 	public static List<SymbolTicker> getSymbolTickers() throws Exception
