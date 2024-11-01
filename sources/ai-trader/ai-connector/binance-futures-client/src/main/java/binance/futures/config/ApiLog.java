@@ -1,16 +1,16 @@
 package binance.futures.config;
 
-import aitrader.util.log.LogAppenders;
-import aitrader.util.log.LogService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ApiLog
 {
-	private static LogService LOG = LogAppenders.addAppender("API");
+	private static Logger LOG = LoggerFactory.getLogger(ApiLog.class);
 
-	public static String getLOG()
+	/*public static String getLOG()
 	{
 		return LOG.getLOG();
-	}
+	}*/
 
 	public static void debug(String msg)
 	{
@@ -34,7 +34,7 @@ public class ApiLog
 
 	public static void error(Exception ex)
 	{
-		LOG.error(ex);
+		LOG.error("Error", ex);
 	}
 
 }

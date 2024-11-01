@@ -24,6 +24,7 @@ public class WsCandlestick extends WebSocketClient
 
 	private String symbolPair;
 	private IntervalType intervalType;
+	private IWSEventProcessor eventProcessor = null;
 
 	// --------------------------------------------------------------------
 
@@ -69,13 +70,23 @@ public class WsCandlestick extends WebSocketClient
 	@Override
 	public void onClose(int code, String reason, boolean remote)
 	{
-		ApiLog.info("Connection closed by " + (remote ? "remote peer" : "us") + " Code: " + code + " Reason: " + reason);
+		if (eventProcessor == null)
+			ApiLog.info("Connection closed by " + (remote ? "remote peer" : "us") + " Code: " + code + " Reason: " + reason);
+		else
+			eventProcessor.onClose(code, reason, remote);
 	}
 
 	@Override
 	public void onError(Exception ex)
 	{
-		ApiLog.error(ex);
+		if (eventProcessor == null)
+			ApiLog.error(ex);
+		else
+			eventProcessor.onError(ex);
+	}
+
+	public void setEventProcessor(IWSEventProcessor processor) {
+		this.eventProcessor = processor;
 	}
 
 	// --------------------------------------------------------------------
@@ -97,6 +108,11 @@ public class WsCandlestick extends WebSocketClient
 			ApiLog.error(e);
 			return null;
 		}
+	}
+
+	public interface IWSEventProcessor {
+		void onClose(int code, String reason, boolean remote);
+		void onError(Exception ex);
 	}
 
 }
