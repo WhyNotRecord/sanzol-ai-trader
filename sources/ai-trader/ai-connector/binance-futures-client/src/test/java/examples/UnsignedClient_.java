@@ -1,5 +1,6 @@
 package examples;
 
+import java.util.Date;
 import java.util.List;
 
 import binance.futures.enums.IntervalType;
@@ -28,8 +29,11 @@ public class UnsignedClient_
 		lstFundingRates.forEach(s -> System.out.println(s));		
 
 		List<PremiumIndex> lstPremiumIndexes = UnsignedClient.getPremiumIndex(null);
-		lstPremiumIndexes.forEach(s -> System.out.println(s));		
+		lstPremiumIndexes.forEach(s -> System.out.println(s));
 
+		Long serverTime = UnsignedClient.getServerTime();
+		System.out.println(serverTime);
+		System.out.println(new Date(serverTime));
 	}
 
 }

@@ -31,6 +31,7 @@ public class Order //extends AbstractOrder
 	private String origType;
 	private BigDecimal activationPrice;
 	private BigDecimal priceRate;
+	private Long time = 0L;
 	private Long updateTime;
 	private String workingType;
 	private Boolean priceProtect;
@@ -235,6 +236,14 @@ public class Order //extends AbstractOrder
 		this.priceRate = priceRate;
 	}
 
+	public Long getTime() {
+		return time;
+	}
+
+	public void setTime(Long time) {
+		this.time = time;
+	}
+
 	public Long getUpdateTime()
 	{
 		return updateTime;
@@ -272,7 +281,7 @@ public class Order //extends AbstractOrder
 				+ executedQty + ", avgPrice=" + avgPrice + ", origQty=" + origQty + ", price=" + price + ", side=" + side + ", positionSide="
 				+ positionSide + ", status=" + status + ", stopPrice=" + stopPrice + ", timeInForce=" + timeInForce + ", type=" + type
 				+ ", origType=" + origType+ ", workingType=" + workingType + ", activationPrice=" + activationPrice + ", priceRate=" + priceRate +
-				", updateTime=" + new Date(updateTime) + "]";
+				", time=" + new Date(time) + ", updateTime=" + new Date(updateTime) + "]";
 	}
 
 	/*@Override
