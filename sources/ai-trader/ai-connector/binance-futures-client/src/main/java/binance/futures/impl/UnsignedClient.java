@@ -25,8 +25,12 @@ import binance.futures.model.Candle;
 import binance.futures.model.Depth;
 import binance.futures.model.ExchangeInfo;
 import binance.futures.model.FundingRate;
+import binance.futures.model.OpenInterest;
+import binance.futures.model.OpenInterestStats;
 import binance.futures.model.PremiumIndex;
 import binance.futures.model.SymbolTicker;
+import binance.futures.model.TopLongShortAccountRatio;
+import binance.futures.model.TopTraderLongShortRatio;
 
 public class UnsignedClient
 {
@@ -283,6 +287,244 @@ public class UnsignedClient
 		Depth depth = mapper.readValue(jsonString, Depth.class);
 
 		return depth;			
-	}	
+	}
+	
+	/**
+	 * Получить открытый интерес для конкретного символа.
+	 * Endpoint: GET /fapi/v1/openInterest
+	 * 
+	 * @param symbol Символ (например, "BTCUSDT")
+	 * @return Информация об открытом интересе
+	 * @throws Exception в случае ошибки API
+	 */
+	public static OpenInterest getOpenInterest(String symbol) throws Exception
+	{
+		final String path = "/fapi/v1/openInterest";
+
+		WebTarget target = ClientBuilder.newClient()
+			.target(ApiConstants.BASE_URL)
+			.path(path)
+			.queryParam("symbol", symbol);
+
+		URI uri = target.getUri();
+
+		HttpClient httpClient = HttpClient.newBuilder().build();
+		HttpRequest request = HttpRequest.newBuilder()
+            .uri(uri)
+            .GET()
+            .build();
+
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+		
+		if(response.statusCode() != 200)
+		{
+			ResponseStatus responseStatus = ResponseStatus.from(response.body());
+			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+		}
+
+		String jsonString = response.body();
+		ObjectMapper mapper = new ObjectMapper();
+		OpenInterest openInterest = mapper.readValue(jsonString, OpenInterest.class);
+
+		return openInterest;			
+	}
+	
+	/**
+	 * Получить статистику открытого интереса.
+	 * Endpoint: GET /fapi/v1/openInterestHist
+	 * 
+	 * @param symbol Символ (например, "BTCUSDT")
+	 * @param period Период: "5m", "15m", "30m", "1h", "2h", "4h", "6h", "12h", "1d"
+	 * @param limit Ограничение количества записей (по умолчанию 30, максимум 500)
+	 * @param startTime Время начала в миллисекундах (опционально)
+	 * @param endTime Время окончания в миллисекундах (опционально)
+	 * @return Список данных статистики открытого интереса
+	 * @throws Exception в случае ошибки API
+	 */
+	public static List<OpenInterestStats> getOpenInterestStats(String symbol, String period, 
+			Integer limit, Long startTime, Long endTime) throws Exception
+	{
+		final String path = "/fapi/v1/openInterestHist";
+
+		WebTarget target = ClientBuilder.newClient()
+			.target(ApiConstants.BASE_URL)
+			.path(path)
+			.queryParam("symbol", symbol)
+			.queryParam("period", period);
+		
+		if (limit != null)
+			target = target.queryParam("limit", limit);
+		if (startTime != null)
+			target = target.queryParam("startTime", startTime);
+		if (endTime != null)
+			target = target.queryParam("endTime", endTime);
+
+		URI uri = target.getUri();
+
+		HttpClient httpClient = HttpClient.newBuilder().build();
+		HttpRequest request = HttpRequest.newBuilder()
+            .uri(uri)
+            .GET()
+            .build();
+
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+		
+		if(response.statusCode() != 200)
+		{
+			ResponseStatus responseStatus = ResponseStatus.from(response.body());
+			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+		}
+
+		String jsonString = response.body();
+		ObjectMapper mapper = new ObjectMapper();
+		List<OpenInterestStats> lst = mapper.readValue(jsonString, new TypeReference<List<OpenInterestStats>>(){});
+
+		return lst;			
+	}
+	
+	/**
+	 * Получить статистику открытого интереса с настройками по умолчанию.
+	 * 
+	 * @param symbol Символ (например, "BTCUSDT")
+	 * @param period Период: "5m", "15m", "30m", "1h", "2h", "4h", "6h", "12h", "1d"
+	 * @return Список данных статистики открытого интереса
+	 * @throws Exception в случае ошибки API
+	 */
+	public static List<OpenInterestStats> getOpenInterestStats(String symbol, String period) throws Exception
+	{
+		return getOpenInterestStats(symbol, period, null, null, null);
+	}
+	
+	/**
+	 * Получить соотношение длинных и коротких позиций топ-трейдеров (по позициям).
+	 * Endpoint: GET /fapi/v1/topLongShortPositionRatio
+	 * 
+	 * @param symbol Символ (например, "BTCUSDT")
+	 * @param period Период: "5m", "15m", "30m", "1h", "2h", "4h", "6h", "12h", "1d"
+	 * @param limit Ограничение количества записей (по умолчанию 30, максимум 500)
+	 * @param startTime Время начала в миллисекундах (опционально)
+	 * @param endTime Время окончания в миллисекундах (опционально)
+	 * @return Список данных соотношения длинных и коротких позиций топ-трейдеров
+	 * @throws Exception в случае ошибки API
+	 */
+	public static List<TopTraderLongShortRatio> getTopTraderLongShortRatio(String symbol, String period, 
+			Integer limit, Long startTime, Long endTime) throws Exception
+	{
+		final String path = "/fapi/v1/topLongShortPositionRatio";
+
+		WebTarget target = ClientBuilder.newClient()
+			.target(ApiConstants.BASE_URL)
+			.path(path)
+			.queryParam("symbol", symbol)
+			.queryParam("period", period);
+		
+		if (limit != null)
+			target = target.queryParam("limit", limit);
+		if (startTime != null)
+			target = target.queryParam("startTime", startTime);
+		if (endTime != null)
+			target = target.queryParam("endTime", endTime);
+
+		URI uri = target.getUri();
+
+		HttpClient httpClient = HttpClient.newBuilder().build();
+		HttpRequest request = HttpRequest.newBuilder()
+            .uri(uri)
+            .GET()
+            .build();
+
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+		
+		if(response.statusCode() != 200)
+		{
+			ResponseStatus responseStatus = ResponseStatus.from(response.body());
+			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+		}
+
+		String jsonString = response.body();
+		ObjectMapper mapper = new ObjectMapper();
+		List<TopTraderLongShortRatio> lst = mapper.readValue(jsonString, new TypeReference<List<TopTraderLongShortRatio>>(){});
+
+		return lst;			
+	}
+	
+	/**
+	 * Получить соотношение длинных и коротких позиций топ-трейдеров с настройками по умолчанию.
+	 * 
+	 * @param symbol Символ (например, "BTCUSDT")
+	 * @param period Период: "5m", "15m", "30m", "1h", "2h", "4h", "6h", "12h", "1d"
+	 * @return Список данных соотношения длинных и коротких позиций топ-трейдеров
+	 * @throws Exception в случае ошибки API
+	 */
+	public static List<TopTraderLongShortRatio> getTopTraderLongShortRatio(String symbol, String period) throws Exception
+	{
+		return getTopTraderLongShortRatio(symbol, period, null, null, null);
+	}
+	
+	/**
+	 * Получить соотношение длинных и коротких счетов топ-трейдеров (по аккаунтам).
+	 * Endpoint: GET /fapi/v1/topLongShortAccountRatio
+	 * 
+	 * @param symbol Символ (например, "BTCUSDT")
+	 * @param period Период: "5m", "15m", "30m", "1h", "2h", "4h", "6h", "12h", "1d"
+	 * @param limit Ограничение количества записей (по умолчанию 30, максимум 500)
+	 * @param startTime Время начала в миллисекундах (опционально)
+	 * @param endTime Время окончания в миллисекундах (опционально)
+	 * @return Список данных соотношения длинных и коротких счетов топ-трейдеров
+	 * @throws Exception в случае ошибки API
+	 */
+	public static List<TopLongShortAccountRatio> getTopLongShortAccountRatio(String symbol, String period, 
+			Integer limit, Long startTime, Long endTime) throws Exception
+	{
+		final String path = "/fapi/v1/topLongShortAccountRatio";
+
+		WebTarget target = ClientBuilder.newClient()
+			.target(ApiConstants.BASE_URL)
+			.path(path)
+			.queryParam("symbol", symbol)
+			.queryParam("period", period);
+		
+		if (limit != null)
+			target = target.queryParam("limit", limit);
+		if (startTime != null)
+			target = target.queryParam("startTime", startTime);
+		if (endTime != null)
+			target = target.queryParam("endTime", endTime);
+
+		URI uri = target.getUri();
+
+		HttpClient httpClient = HttpClient.newBuilder().build();
+		HttpRequest request = HttpRequest.newBuilder()
+            .uri(uri)
+            .GET()
+            .build();
+
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+		
+		if(response.statusCode() != 200)
+		{
+			ResponseStatus responseStatus = ResponseStatus.from(response.body());
+			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+		}
+
+		String jsonString = response.body();
+		ObjectMapper mapper = new ObjectMapper();
+		List<TopLongShortAccountRatio> lst = mapper.readValue(jsonString, new TypeReference<List<TopLongShortAccountRatio>>(){});
+
+		return lst;			
+	}
+	
+	/**
+	 * Получить соотношение длинных и коротких счетов топ-трейдеров с настройками по умолчанию.
+	 * 
+	 * @param symbol Символ (например, "BTCUSDT")
+	 * @param period Период: "5m", "15m", "30m", "1h", "2h", "4h", "6h", "12h", "1d"
+	 * @return Список данных соотношения длинных и коротких счетов топ-трейдеров
+	 * @throws Exception в случае ошибки API
+	 */
+	public static List<TopLongShortAccountRatio> getTopLongShortAccountRatio(String symbol, String period) throws Exception
+	{
+		return getTopLongShortAccountRatio(symbol, period, null, null, null);
+	}
 
 }

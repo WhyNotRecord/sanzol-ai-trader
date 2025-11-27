@@ -11,7 +11,7 @@ public class SignedClient_
 
 	public static void main(String[] args) throws Exception
 	{
-		SignedClient client = getSignedClient();
+		SignedClient client = getSignedClientAlt();
 
 		/*
 		System.out.println("");
@@ -39,18 +39,24 @@ public class SignedClient_
 
 		System.out.println("");
 		List<Order> lstOrders = client.getOpenOrders();
-		lstOrders.forEach(s -> System.out.println(s.getSymbol() + "\t\t" + s.getAvgPrice() + "\t\t" + s.getOrigQty()));
+		//lstOrders.forEach(s -> System.out.println(s.getSymbol() + "\t\t" + s.getAvgPrice() + "\t\t" + s.getOrigQty()));
+		lstOrders.forEach(System.out::println);
 
 		System.out.println("");
-		List<Order> lstOpOrders = client.getFilledOrders("BTCUSDT");
-		lstOpOrders.forEach(s -> System.out.println(s.getSymbol() + "\t\t" + s.getAvgPrice() + "\t\t" + s.getOrigQty()));
+		List<Order> lstOpOrders = client.getFilledOrders("OPUSDT");
+		//lstOpOrders.forEach(s -> System.out.println(s.getSymbol() + "\t\t" + s.getAvgPrice() + "\t\t" + s.getOrigQty()));
+		lstOpOrders.forEach(System.out::println);
 
 		System.out.println("");
 		AccountInfo info = client.getAccountData();
 		for (AccountInfo.AccountPosition position : info.getPositions()) {
 			System.out.println(position);
 		}
-		info.canTrade();
+		System.out.println(info.canTrade());
+
+		System.out.println("");
+		String levResponse = client.getLeverageBracket("OPUSDT");
+		System.out.println(levResponse);
 	}
 
 	private static SignedClient getSignedClient() throws IOException {
@@ -59,7 +65,9 @@ public class SignedClient_
 	}
 
 	private static SignedClient getSignedClientAlt() throws IOException {
-		return SignedClient.create("foo", "bar");
+		return SignedClient.create(
+				"foo",
+				"bar");
 	}
 
 }
