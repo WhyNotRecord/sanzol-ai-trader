@@ -443,6 +443,7 @@ public class SignedClient {
 		WebTarget target = ClientBuilder.newClient()
 				.target(ApiConstants.BASE_URL)
 				.path(path)
+				.queryParam("algoType", "CONDITIONAL")
 				.queryParam("symbol", symbol)
 				.queryParam("side", side)
 				.queryParam("positionSide", positionSide)
