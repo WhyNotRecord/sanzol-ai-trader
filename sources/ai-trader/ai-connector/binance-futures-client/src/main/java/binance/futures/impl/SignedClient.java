@@ -374,7 +374,8 @@ public class SignedClient {
 		// Проверяем, нужно ли использовать новый алго-сервис
 		if (isConditionalOrderType(orderType)) {
 			return postAlgoOrder(symbol, side, positionSide, orderType, timeInForce, quantity, price,
-					reduceOnly, newClientOrderId, stopPrice, workingType, newOrderRespType, closePosition);
+					reduceOnly, newClientOrderId, stopPrice, workingType, newOrderRespType,
+					closePosition, null, null, null);
 		}
 
 		// Существующий код для обычных ордеров
@@ -430,10 +431,10 @@ public class SignedClient {
 		return order;
 	}
 
-	// Новый метод для алго-ордеров
 	public Order postAlgoOrder(String symbol, OrderSide side, PositionSide positionSide, OrderType orderType, TimeInForce timeInForce,
-														 String quantity, String price, Boolean reduceOnly, String newClientOrderId, String stopPrice,
-														 WorkingType workingType, NewOrderRespType newOrderRespType, Boolean closePosition) throws Exception {
+														 String quantity, String price, Boolean reduceOnly, String newClientOrderId, String triggerPrice,
+														 WorkingType workingType, NewOrderRespType newOrderRespType, Boolean closePosition,
+														 String activationPrice, String callbackRate, String priceMatch) throws Exception {
 
 		final String path = "/fapi/v1/algoOrder";
 
@@ -452,13 +453,32 @@ public class SignedClient {
 				.queryParam("quantity", quantity)
 				.queryParam("price", price)
 				.queryParam("reduceOnly", reduceOnly)
-				.queryParam("newClientOrderId", newClientOrderId)
-				.queryParam("stopPrice", stopPrice)
+				.queryParam("clientAlgoId", newClientOrderId)
+				.queryParam("triggerPrice", triggerPrice)
 				.queryParam("workingType", workingType)
 				.queryParam("newOrderRespType", newOrderRespType)
 				.queryParam("closePosition", closePosition)
 				.queryParam("recvWindow", recvWindow)
 				.queryParam("timestamp", timestamp);
+
+		// Специфичные параметры для TRAILING_STOP_MARKET
+		if (orderType == OrderType.TRAILING_STOP_MARKET) {
+			if (callbackRate != null && !callbackRate.isEmpty()) {
+				target = target.queryParam("callbackRate", callbackRate);
+			} else {
+				throw new IllegalArgumentException("callbackRate is required for TRAILING_STOP_MARKET orders");
+			}
+
+			if (activationPrice != null && !activationPrice.isEmpty()) {
+				target = target.queryParam("activationPrice", activationPrice);
+			}
+		}
+
+		// priceMatch для LIMIT/STOP/TAKE_PROFIT ордеров
+		if (priceMatch != null && !priceMatch.isEmpty() &&
+				(orderType == OrderType.LIMIT || orderType == OrderType.STOP || orderType == OrderType.TAKE_PROFIT)) {
+			target = target.queryParam("priceMatch", priceMatch);
+		}
 
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
@@ -475,10 +495,10 @@ public class SignedClient {
 		if(response.statusCode() != 200) {
 			ApiLog.error("POST ALGO ORDER ERROR " + symbol + ", " + side + ", " + positionSide + ", " + orderType + ", "
 					+ timeInForce + ", " + quantity + ", " + price + ", " + reduceOnly + ", " + newClientOrderId
-					+ ", " + stopPrice + ", " + workingType + ", " + newOrderRespType + ", " + closePosition);
+					+ ", " + triggerPrice + ", " + workingType + ", " + newOrderRespType + ", " + closePosition);
 
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		String jsonString = response.body();
