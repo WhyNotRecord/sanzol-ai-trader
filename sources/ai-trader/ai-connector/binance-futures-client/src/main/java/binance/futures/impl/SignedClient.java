@@ -502,6 +502,13 @@ public class SignedClient {
 		}
 
 		String jsonString = response.body();
+		// Adapt AlgoOrder to match regular Order response
+		jsonString = jsonString
+				.replace("\"algoId\":", "\"orderId\":")
+				.replace("\"clientAlgoId\":", "\"clientOrderId\":")
+				.replace("\"triggerPrice\":", "\"stopPrice\":")
+				.replace("\"algoStatus\":", "\"status\":");
+
 		ObjectMapper mapper = new ObjectMapper();
 		Order order = mapper.readValue(jsonString, Order.class);
 
