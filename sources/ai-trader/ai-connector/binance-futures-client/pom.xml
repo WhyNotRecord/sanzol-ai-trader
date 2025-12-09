@@ -12,7 +12,7 @@
 
 	<artifactId>binance-futures-client</artifactId>
 	<groupId>sanzol.aitrader.binance-futures</groupId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<packaging>jar</packaging>
 
 	<dependencies>

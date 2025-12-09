@@ -11,7 +11,13 @@ public class BinanceException extends RuntimeException
 		super(errMsg);
 		this.errCode = errCode;
 	}
-	
+
+	public BinanceException(int errCode, String errMsg)
+	{
+		super(errMsg);
+		this.errCode = String.valueOf(errCode);
+	}
+
 	public BinanceException(String errMsg)
 	{
 		super(errMsg);
@@ -29,4 +35,9 @@ public class BinanceException extends RuntimeException
 		return errCode;
 	}
 
+	@Override
+	public String getMessage() {
+		return errCode == null || errCode.isEmpty() ?
+				super.getMessage() : errCode + " : " + super.getMessage();
+	}
 }

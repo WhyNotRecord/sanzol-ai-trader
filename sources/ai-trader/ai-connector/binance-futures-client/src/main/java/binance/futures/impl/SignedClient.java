@@ -35,6 +35,7 @@ import binance.futures.model.Order;
 import binance.futures.model.PositionRisk;
 
 public class SignedClient {
+	public static final String ALGO_ORDER_API_ERROR_CODE = "-4120";
 	private String apiKey;
 	private String secretKey;
 
@@ -357,52 +358,67 @@ public class SignedClient {
 		return response.body();
 	}
 
+
+	private boolean isConditionalOrderType(OrderType orderType) {
+		return orderType == OrderType.STOP_MARKET ||
+				orderType == OrderType.TAKE_PROFIT_MARKET ||
+				orderType == OrderType.STOP ||
+				orderType == OrderType.TAKE_PROFIT ||
+				orderType == OrderType.TRAILING_STOP_MARKET;
+	}
+
 	public Order postOrder(String symbol, OrderSide side, PositionSide positionSide, OrderType orderType, TimeInForce timeInForce,
-						   String quantity, String price, Boolean reduceOnly, String newClientOrderId, String stopPrice,
-						   WorkingType workingType, NewOrderRespType newOrderRespType, Boolean closePosition) throws Exception
-	{
+												 String quantity, String price, Boolean reduceOnly, String newClientOrderId, String stopPrice,
+												 WorkingType workingType, NewOrderRespType newOrderRespType, Boolean closePosition) throws Exception {
+
+		// Проверяем, нужно ли использовать новый алго-сервис
+		if (isConditionalOrderType(orderType)) {
+			return postAlgoOrder(symbol, side, positionSide, orderType, timeInForce, quantity, price,
+					reduceOnly, newClientOrderId, stopPrice, workingType, newOrderRespType, closePosition);
+		}
+
+		// Существующий код для обычных ордеров
 		final String path = "/fapi/v1/order";
 
 		String recvWindow = Long.toString(60_000L);
 		String timestamp = Long.toString(System.currentTimeMillis());
 
 		WebTarget target = ClientBuilder.newClient()
-			.target(ApiConstants.BASE_URL)
-			.path(path)
-			.queryParam("symbol", symbol)
-			.queryParam("side", side)
-			.queryParam("positionSide", positionSide)
-			.queryParam("type", orderType)
-			.queryParam("timeInForce", timeInForce)
-			.queryParam("quantity", quantity)
-			.queryParam("price", price)
-			.queryParam("reduceOnly", reduceOnly)
-			.queryParam("newClientOrderId", newClientOrderId)
-			.queryParam("stopPrice", stopPrice)
-			.queryParam("workingType", workingType)
-			.queryParam("newOrderRespType", newOrderRespType)
-			.queryParam("closePosition", closePosition)
-			.queryParam("recvWindow", recvWindow)
-			.queryParam("timestamp", timestamp);
+				.target(ApiConstants.BASE_URL)
+				.path(path)
+				.queryParam("symbol", symbol)
+				.queryParam("side", side)
+				.queryParam("positionSide", positionSide)
+				.queryParam("type", orderType)
+				.queryParam("timeInForce", timeInForce)
+				.queryParam("quantity", quantity)
+				.queryParam("price", price)
+				.queryParam("reduceOnly", reduceOnly)
+				.queryParam("newClientOrderId", newClientOrderId)
+				.queryParam("stopPrice", stopPrice)
+				.queryParam("workingType", workingType)
+				.queryParam("newOrderRespType", newOrderRespType)
+				.queryParam("closePosition", closePosition)
+				.queryParam("recvWindow", recvWindow)
+				.queryParam("timestamp", timestamp);
 
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
 		HttpClient httpClient = HttpClient.newBuilder().build();
 		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .header("X-MBX-APIKEY", apiKey)
-            .POST(HttpRequest.BodyPublishers.noBody())
-            .build();
+				.uri(uri)
+				.header("X-MBX-APIKEY", apiKey)
+				.POST(HttpRequest.BodyPublishers.noBody())
+				.build();
 
-		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());		
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
-		if(response.statusCode() != 200)
-		{
-			ApiLog.error("POST ORDER ERROR " + symbol + ", " + side + ", " + positionSide + ", " + orderType + ", " 
-					+ timeInForce + ", " + quantity + ", " + price + ", " + reduceOnly + ", " + newClientOrderId 
+		if(response.statusCode() != 200) {
+			ApiLog.error("POST ORDER ERROR " + symbol + ", " + side + ", " + positionSide + ", " + orderType + ", "
+					+ timeInForce + ", " + quantity + ", " + price + ", " + reduceOnly + ", " + newClientOrderId
 					+ ", " + stopPrice + ", " + workingType + ", " + newOrderRespType + ", " + closePosition);
-			
+
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
 			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
 		}
@@ -411,10 +427,211 @@ public class SignedClient {
 		ObjectMapper mapper = new ObjectMapper();
 		Order order = mapper.readValue(jsonString, Order.class);
 
-		return order;			
-	}	
-	
+		return order;
+	}
+
+	// Новый метод для алго-ордеров
+	public Order postAlgoOrder(String symbol, OrderSide side, PositionSide positionSide, OrderType orderType, TimeInForce timeInForce,
+														 String quantity, String price, Boolean reduceOnly, String newClientOrderId, String stopPrice,
+														 WorkingType workingType, NewOrderRespType newOrderRespType, Boolean closePosition) throws Exception {
+
+		final String path = "/fapi/v1/algoOrder";
+
+		String recvWindow = Long.toString(60_000L);
+		String timestamp = Long.toString(System.currentTimeMillis());
+
+		WebTarget target = ClientBuilder.newClient()
+				.target(ApiConstants.BASE_URL)
+				.path(path)
+				.queryParam("symbol", symbol)
+				.queryParam("side", side)
+				.queryParam("positionSide", positionSide)
+				.queryParam("type", orderType)
+				.queryParam("timeInForce", timeInForce)
+				.queryParam("quantity", quantity)
+				.queryParam("price", price)
+				.queryParam("reduceOnly", reduceOnly)
+				.queryParam("newClientOrderId", newClientOrderId)
+				.queryParam("stopPrice", stopPrice)
+				.queryParam("workingType", workingType)
+				.queryParam("newOrderRespType", newOrderRespType)
+				.queryParam("closePosition", closePosition)
+				.queryParam("recvWindow", recvWindow)
+				.queryParam("timestamp", timestamp);
+
+		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
+		URI uri = target.queryParam("signature", signature).getUri();
+
+		HttpClient httpClient = HttpClient.newBuilder().build();
+		HttpRequest request = HttpRequest.newBuilder()
+				.uri(uri)
+				.header("X-MBX-APIKEY", apiKey)
+				.POST(HttpRequest.BodyPublishers.noBody())
+				.build();
+
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+
+		if(response.statusCode() != 200) {
+			ApiLog.error("POST ALGO ORDER ERROR " + symbol + ", " + side + ", " + positionSide + ", " + orderType + ", "
+					+ timeInForce + ", " + quantity + ", " + price + ", " + reduceOnly + ", " + newClientOrderId
+					+ ", " + stopPrice + ", " + workingType + ", " + newOrderRespType + ", " + closePosition);
+
+			ResponseStatus responseStatus = ResponseStatus.from(response.body());
+			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+		}
+
+		String jsonString = response.body();
+		ObjectMapper mapper = new ObjectMapper();
+		Order order = mapper.readValue(jsonString, Order.class);
+
+		return order;
+	}
+
+	// Метод для отмены всех открытых алго-ордеров
+	public String cancelAllOpenAlgoOrders(String symbol) throws Exception {
+		final String path = "/fapi/v1/algoOpenOrders";
+
+		String recvWindow = Long.toString(60_000L);
+		String timestamp = Long.toString(System.currentTimeMillis());
+
+		WebTarget target = ClientBuilder.newClient()
+				.target(ApiConstants.BASE_URL)
+				.path(path)
+				.queryParam("symbol", symbol)
+				.queryParam("recvWindow", recvWindow)
+				.queryParam("timestamp", timestamp);
+
+		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
+		URI uri = target.queryParam("signature", signature).getUri();
+
+		HttpClient httpClient = HttpClient.newBuilder().build();
+		HttpRequest request = HttpRequest.newBuilder()
+				.uri(uri)
+				.header("X-MBX-APIKEY", apiKey)
+				.DELETE()
+				.build();
+
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+
+		if(response.statusCode() != 200) {
+			ResponseStatus responseStatus = ResponseStatus.from(response.body());
+			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+		}
+
+		return response.body();
+	}
+
+	// Метод для получения открытых алго-ордеров
+	public List<Order> getOpenAlgoOrders(String symbol) throws Exception {
+		final String path = "/fapi/v1/openAlgoOrders";
+
+		String recvWindow = Long.toString(60_000L);
+		String timestamp = Long.toString(System.currentTimeMillis());
+
+		WebTarget target = ClientBuilder.newClient()
+				.target(ApiConstants.BASE_URL)
+				.path(path)
+				.queryParam("recvWindow", recvWindow)
+				.queryParam("timestamp", timestamp);
+
+		if (symbol != null) {
+			target = target.queryParam("symbol", symbol);
+		}
+
+		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
+		URI uri = target.queryParam("signature", signature).getUri();
+
+		HttpClient httpClient = HttpClient.newBuilder().build();
+		HttpRequest request = HttpRequest.newBuilder()
+				.uri(uri)
+				.header("X-MBX-APIKEY", apiKey)
+				.GET()
+				.build();
+
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+
+		if(response.statusCode() != 200) {
+			ResponseStatus responseStatus = ResponseStatus.from(response.body());
+			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+		}
+
+		String jsonString = response.body();
+		ObjectMapper mapper = new ObjectMapper();
+		List<Order> orders = mapper.readValue(jsonString, new TypeReference<List<Order>>(){});
+
+		return orders;
+	}
+
+	// Метод для получения всех алго-ордеров
+	public List<Order> getAllAlgoOrders(String symbol, Long startTime, Long endTime, Integer page, Integer pageSize) throws Exception {
+		final String path = "/fapi/v1/allAlgoOrders";
+
+		String recvWindow = Long.toString(60_000L);
+		String timestamp = Long.toString(System.currentTimeMillis());
+
+		WebTarget target = ClientBuilder.newClient()
+				.target(ApiConstants.BASE_URL)
+				.path(path)
+				.queryParam("recvWindow", recvWindow)
+				.queryParam("timestamp", timestamp);
+
+		if (symbol != null) {
+			target = target.queryParam("symbol", symbol);
+		}
+		if (startTime != null) {
+			target = target.queryParam("startTime", startTime);
+		}
+		if (endTime != null) {
+			target = target.queryParam("endTime", endTime);
+		}
+		if (page != null) {
+			target = target.queryParam("page", page);
+		}
+		if (pageSize != null) {
+			target = target.queryParam("pageSize", pageSize);
+		}
+
+		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
+		URI uri = target.queryParam("signature", signature).getUri();
+
+		HttpClient httpClient = HttpClient.newBuilder().build();
+		HttpRequest request = HttpRequest.newBuilder()
+				.uri(uri)
+				.header("X-MBX-APIKEY", apiKey)
+				.GET()
+				.build();
+
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+
+		if(response.statusCode() != 200) {
+			ResponseStatus responseStatus = ResponseStatus.from(response.body());
+			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+		}
+
+		String jsonString = response.body();
+		ObjectMapper mapper = new ObjectMapper();
+		List<Order> orders = mapper.readValue(jsonString, new TypeReference<List<Order>>(){});
+
+		return orders;
+	}
+
 	public Order cancelOrder(String symbol, Long orderId, String origClientOrderId) throws Exception
+	{
+		try {
+			// Сначала пытаемся использовать стандартный endpoint для обычных ордеров
+			return cancelRegularOrder(symbol, orderId, origClientOrderId);
+		} catch (BinanceException e) {
+			// Если получили ошибку -4120, пытаемся использовать алго-endpoint
+			if (ALGO_ORDER_API_ERROR_CODE.equals(e.getErrCode())) {
+				ApiLog.info("Switching to Algo Order API for cancel - OrderId: " + orderId + ", ClientOrderId: " + origClientOrderId);
+				return cancelAlgoOrder(symbol, orderId, origClientOrderId);
+			}
+			// Если другая ошибка, пробрасываем её дальше
+			throw e;
+		}
+	}
+
+	private Order cancelRegularOrder(String symbol, Long orderId, String origClientOrderId) throws Exception
 	{
 		final String path = "/fapi/v1/order";
 
@@ -445,7 +662,7 @@ public class SignedClient {
 		if(response.statusCode() != 200)
 		{
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		String jsonString = response.body();
@@ -455,38 +672,42 @@ public class SignedClient {
 		return order;			
 	}
 
-	public Order queryOrder(String symbol, Long orderId, String origClientOrderId) throws Exception
-	{
-		final String path = "/fapi/v1/order";
+	public Order cancelAlgoOrder(String symbol, Long orderId, String origClientOrderId) throws Exception {
+		final String path = "/fapi/v1/algoOrder";
 
 		String recvWindow = Long.toString(60_000L);
 		String timestamp = Long.toString(System.currentTimeMillis());
 
 		WebTarget target = ClientBuilder.newClient()
-			.target(ApiConstants.BASE_URL)
-			.path(path)
-			.queryParam("symbol", symbol)
-			.queryParam("orderId", orderId)
-			.queryParam("origClientOrderId", origClientOrderId)
-			.queryParam("recvWindow", recvWindow)
-			.queryParam("timestamp", timestamp);
+				.target(ApiConstants.BASE_URL)
+				.path(path)
+				.queryParam("symbol", symbol)
+				.queryParam("recvWindow", recvWindow)
+				.queryParam("timestamp", timestamp);
+
+		// Для алго-ордеров используем orderId или origClientOrderId
+		if (orderId != null) {
+			target = target.queryParam("algoId", orderId);
+		}
+		if (origClientOrderId != null) {
+			target = target.queryParam("clientAlgoId", origClientOrderId);
+		}
 
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
 		HttpClient httpClient = HttpClient.newBuilder().build();
 		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .header("X-MBX-APIKEY", apiKey)
-            .GET()
-            .build();
+				.uri(uri)
+				.header("X-MBX-APIKEY", apiKey)
+				.DELETE()
+				.build();
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
-		if(response.statusCode() != 200)
-		{
+		if(response.statusCode() != 200) {
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		String jsonString = response.body();
@@ -495,6 +716,110 @@ public class SignedClient {
 
 		return order;
 	}
+
+	public Order queryOrder(String symbol, Long orderId, String origClientOrderId) throws Exception
+	{
+		try {
+			// Сначала пытаемся использовать стандартный endpoint для обычных ордеров
+			return queryRegularOrder(symbol, orderId, origClientOrderId);
+		} catch (BinanceException e) {
+			// Если получили ошибку -4120, пытаемся использовать алго-endpoint
+			if (ALGO_ORDER_API_ERROR_CODE.equals(e.getErrCode())) {
+				ApiLog.info("Switching to Algo Order API for query - OrderId: " + orderId + ", ClientOrderId: " + origClientOrderId);
+				return queryAlgoOrder(symbol, orderId, origClientOrderId);
+			}
+			// Если другая ошибка, пробрасываем её дальше
+			throw e;
+		}
+	}
+
+	// Переименовываем старый метод для внутреннего использования
+	private Order queryRegularOrder(String symbol, Long orderId, String origClientOrderId) throws Exception
+	{
+		final String path = "/fapi/v1/order";
+
+		String recvWindow = Long.toString(60_000L);
+		String timestamp = Long.toString(System.currentTimeMillis());
+
+		WebTarget target = ClientBuilder.newClient()
+				.target(ApiConstants.BASE_URL)
+				.path(path)
+				.queryParam("symbol", symbol)
+				.queryParam("orderId", orderId)
+				.queryParam("origClientOrderId", origClientOrderId)
+				.queryParam("recvWindow", recvWindow)
+				.queryParam("timestamp", timestamp);
+
+		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
+		URI uri = target.queryParam("signature", signature).getUri();
+
+		HttpClient httpClient = HttpClient.newBuilder().build();
+		HttpRequest request = HttpRequest.newBuilder()
+				.uri(uri)
+				.header("X-MBX-APIKEY", apiKey)
+				.GET()
+				.build();
+
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+
+		if(response.statusCode() != 200)
+		{
+			ResponseStatus responseStatus = ResponseStatus.from(response.body());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
+		}
+
+		String jsonString = response.body();
+		ObjectMapper mapper = new ObjectMapper();
+		Order order = mapper.readValue(jsonString, Order.class);
+
+		return order;
+	}
+
+	public Order queryAlgoOrder(String symbol, Long orderId, String origClientOrderId) throws Exception {
+		final String path = "/fapi/v1/algoOrder";
+
+		String recvWindow = Long.toString(60_000L);
+		String timestamp = Long.toString(System.currentTimeMillis());
+
+		WebTarget target = ClientBuilder.newClient()
+				.target(ApiConstants.BASE_URL)
+				.path(path)
+				.queryParam("symbol", symbol)
+				.queryParam("recvWindow", recvWindow)
+				.queryParam("timestamp", timestamp);
+
+		// Для алго-ордеров используем orderId или origClientOrderId
+		if (orderId != null) {
+			target = target.queryParam("algoId", orderId);
+		}
+		if (origClientOrderId != null) {
+			target = target.queryParam("clientAlgoId", origClientOrderId);
+		}
+
+		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
+		URI uri = target.queryParam("signature", signature).getUri();
+
+		HttpClient httpClient = HttpClient.newBuilder().build();
+		HttpRequest request = HttpRequest.newBuilder()
+				.uri(uri)
+				.header("X-MBX-APIKEY", apiKey)
+				.GET()
+				.build();
+
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+
+		if (response.statusCode() != 200) {
+			ResponseStatus responseStatus = ResponseStatus.from(response.body());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
+		}
+
+		String jsonString = response.body();
+		ObjectMapper mapper = new ObjectMapper();
+		Order order = mapper.readValue(jsonString, Order.class);
+
+		return order;
+	}
+
 
 	// --------------------------------------------------------------------
 
