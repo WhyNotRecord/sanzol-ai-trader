@@ -35,7 +35,6 @@ import binance.futures.model.Order;
 import binance.futures.model.PositionRisk;
 
 public class SignedClient {
-	public static final String ALGO_ORDER_API_ERROR_CODE = "-4120";
 	private String apiKey;
 	private String secretKey;
 
@@ -76,7 +75,7 @@ public class SignedClient {
 
 		if (response.statusCode() != 200) {
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		String jsonString = response.body();
@@ -113,7 +112,7 @@ public class SignedClient {
 
 		if (response.statusCode() != 200) {
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		String jsonString = response.body();
@@ -163,7 +162,7 @@ public class SignedClient {
 		if(response.statusCode() != 200)
 		{
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		String jsonString = response.body();
@@ -201,7 +200,7 @@ public class SignedClient {
 		if(response.statusCode() != 200)
 		{
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		String jsonString = response.body();
@@ -239,7 +238,7 @@ public class SignedClient {
 
 		if (response.statusCode() != 200) {
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		return response.body();
@@ -272,7 +271,7 @@ public class SignedClient {
 
 		if (response.statusCode() != 200) {
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		String jsonString = response.body();
@@ -317,7 +316,7 @@ public class SignedClient {
 		if(response.statusCode() != 200)
 		{
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		return response.body();
@@ -352,7 +351,7 @@ public class SignedClient {
 		if(response.statusCode() != 200)
 		{
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		return response.body();
@@ -421,7 +420,7 @@ public class SignedClient {
 					+ ", " + stopPrice + ", " + workingType + ", " + newOrderRespType + ", " + closePosition);
 
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		String jsonString = response.body();
@@ -502,17 +501,24 @@ public class SignedClient {
 		}
 
 		String jsonString = response.body();
-		// Adapt AlgoOrder to match regular Order response
-		jsonString = jsonString
-				.replace("\"algoId\":", "\"orderId\":")
-				.replace("\"clientAlgoId\":", "\"clientOrderId\":")
-				.replace("\"triggerPrice\":", "\"stopPrice\":")
-				.replace("\"algoStatus\":", "\"status\":");
-
+		jsonString = adaptAlgoOrder(jsonString);
 		ObjectMapper mapper = new ObjectMapper();
 		Order order = mapper.readValue(jsonString, Order.class);
 
 		return order;
+	}
+
+	// Adapt AlgoOrder to match regular Order response
+	private static String adaptAlgoOrder(String jsonString) {
+		jsonString = jsonString
+				.replace("\"algoId\":", "\"orderId\":")
+				.replace("\"clientAlgoId\":", "\"clientOrderId\":")
+				.replace("\"triggerPrice\":", "\"stopPrice\":")
+				.replace("\"actualPrice\":", "\"avgPrice\":")
+				.replace("\"quantity\":", "\"origQty\":")
+				.replace("\"orderType\":", "\"type\":")
+				.replace("\"algoStatus\":", "\"status\":");
+		return jsonString;
 	}
 
 	// Метод для отмены всех открытых алго-ордеров
@@ -543,7 +549,7 @@ public class SignedClient {
 
 		if(response.statusCode() != 200) {
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		return response.body();
@@ -580,10 +586,11 @@ public class SignedClient {
 
 		if(response.statusCode() != 200) {
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		String jsonString = response.body();
+		jsonString = adaptAlgoOrder(jsonString);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Order> orders = mapper.readValue(jsonString, new TypeReference<List<Order>>(){});
 
@@ -633,10 +640,11 @@ public class SignedClient {
 
 		if(response.statusCode() != 200) {
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		String jsonString = response.body();
+		jsonString = adaptAlgoOrder(jsonString);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Order> orders = mapper.readValue(jsonString, new TypeReference<List<Order>>(){});
 
@@ -650,7 +658,7 @@ public class SignedClient {
 			return cancelRegularOrder(symbol, orderId, origClientOrderId);
 		} catch (BinanceException e) {
 			// Если получили ошибку -4120, пытаемся использовать алго-endpoint
-			if (ALGO_ORDER_API_ERROR_CODE.equals(e.getErrCode())) {
+			if (BinanceException.ALGO_ORDER_API_ERROR_CODE.equals(e.getErrCode()) || BinanceException.UNKNOWN_ORDER_API_ERROR_CODE.equals(e.getErrCode())) {
 				ApiLog.info("Switching to Algo Order API for cancel - OrderId: " + orderId + ", ClientOrderId: " + origClientOrderId);
 				return cancelAlgoOrder(symbol, orderId, origClientOrderId);
 			}
@@ -739,6 +747,7 @@ public class SignedClient {
 		}
 
 		String jsonString = response.body();
+		jsonString = adaptAlgoOrder(jsonString);
 		ObjectMapper mapper = new ObjectMapper();
 		Order order = mapper.readValue(jsonString, Order.class);
 
@@ -752,7 +761,7 @@ public class SignedClient {
 			return queryRegularOrder(symbol, orderId, origClientOrderId);
 		} catch (BinanceException e) {
 			// Если получили ошибку -4120, пытаемся использовать алго-endpoint
-			if (ALGO_ORDER_API_ERROR_CODE.equals(e.getErrCode())) {
+			if (BinanceException.ALGO_ORDER_API_ERROR_CODE.equals(e.getErrCode()) || BinanceException.NOT_EXISTING_ORDER_API_ERROR_CODE.equals(e.getErrCode())) {
 				ApiLog.info("Switching to Algo Order API for query - OrderId: " + orderId + ", ClientOrderId: " + origClientOrderId);
 				return queryAlgoOrder(symbol, orderId, origClientOrderId);
 			}
@@ -842,6 +851,7 @@ public class SignedClient {
 		}
 
 		String jsonString = response.body();
+		jsonString = adaptAlgoOrder(jsonString);
 		ObjectMapper mapper = new ObjectMapper();
 		Order order = mapper.readValue(jsonString, Order.class);
 
@@ -879,7 +889,7 @@ public class SignedClient {
 		if(response.statusCode() != 200)
 		{
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		String jsonString = response.body();
@@ -921,7 +931,7 @@ public class SignedClient {
 		if(response.statusCode() != 200)
 		{
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		return "OK";		
@@ -955,7 +965,7 @@ public class SignedClient {
 		if(response.statusCode() != 200)
 		{
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
-			throw new BinanceException(responseStatus.getCode() + " : " + responseStatus.getMsg());
+			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
 		return "OK";		

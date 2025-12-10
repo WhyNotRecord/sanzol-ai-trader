@@ -2,6 +2,9 @@ package binance.futures.commons;
 
 public class BinanceException extends RuntimeException
 {
+	public static final String ALGO_ORDER_API_ERROR_CODE = "-4120";
+	public static final String UNKNOWN_ORDER_API_ERROR_CODE = "-2011";
+	public static final String NOT_EXISTING_ORDER_API_ERROR_CODE = "-2013";
 	private static final long serialVersionUID = 1L;
 
 	private final String errCode;
