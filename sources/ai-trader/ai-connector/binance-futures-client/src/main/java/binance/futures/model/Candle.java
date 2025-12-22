@@ -18,6 +18,8 @@ public class Candle
 	private float closePrice;
 	private BigDecimal volume;
 	private BigDecimal quoteVolume;
+	private BigDecimal takerBuyVol;
+	private BigDecimal takerBuyQuoteVol;
 	private Long count;
 
 	public Candle()
@@ -26,7 +28,8 @@ public class Candle
 	}
 
 	public Candle(long openTime, float openPrice, float highPrice, float lowPrice, float closePrice,
-								BigDecimal volume, BigDecimal quoteVolume, Long count)
+								BigDecimal volume, BigDecimal quoteVolume, BigDecimal takerBuyVol, 
+								BigDecimal takerBuyQuoteVol, Long count)
 	{
 		this.openTime = openTime;
 		this.openPrice = openPrice;
@@ -35,6 +38,8 @@ public class Candle
 		this.closePrice = closePrice;
 		this.volume = volume;
 		this.quoteVolume = quoteVolume;
+		this.takerBuyVol = takerBuyVol;
+		this.takerBuyQuoteVol = takerBuyQuoteVol;
 		this.count = count;
 	}
 
@@ -108,6 +113,26 @@ public class Candle
 		this.quoteVolume = quoteVolume;
 	}
 
+	public BigDecimal getTakerBuyVol()
+	{
+		return takerBuyVol;
+	}
+
+	public void setTakerBuyVol(BigDecimal takerBuyVol)
+	{
+		this.takerBuyVol = takerBuyVol;
+	}
+
+	public BigDecimal getTakerBuyQuoteVol()
+	{
+		return takerBuyQuoteVol;
+	}
+
+	public void setTakerBuyQuoteVol(BigDecimal takerBuyQuoteVol)
+	{
+		this.takerBuyQuoteVol = takerBuyQuoteVol;
+	}
+
 	public Long getCount()
 	{
 		return count;
@@ -128,10 +153,6 @@ public class Candle
 	// ---- TO STRING ---------------------------------------------------------
 	
 	@Override
-	/*public String toString()
-	{
-		return "Candle [openPrice=" + openPrice + ", highPrice=" + highPrice + ", lowPrice=" + lowPrice + ", closePrice=" + closePrice + ", volume=" + volume + ", quoteVolume=" + quoteVolume + ", count=" + count + "]";
-	}*/
 	public String toString() {
 		return String.format("Time: %s. Low: %s. High: %s. Open: %s. Close: %s. Volume: %s. Quoted vol: %s",
 				new Date(openTime), lowPrice, highPrice, openPrice, closePrice, volume, quoteVolume);

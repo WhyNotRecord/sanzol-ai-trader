@@ -2,7 +2,10 @@ package binance.futures.commons;
 
 public class BinanceException extends RuntimeException
 {
+	public static final String SERVER_TIMEOUT_ERROR_CODE = "-1007";
 	public static final String ALGO_ORDER_API_ERROR_CODE = "-4120";
+	public static final String NO_POSITION_FOR_STOP_ORDER_ERROR_CODE = "-4509";
+	public static final String OPEN_STOP_EXISTING_ERROR_CODE = "-4130";
 	public static final String UNKNOWN_ORDER_API_ERROR_CODE = "-2011";
 	public static final String NOT_EXISTING_ORDER_API_ERROR_CODE = "-2013";
 	private static final long serialVersionUID = 1L;

@@ -35,6 +35,23 @@ import binance.futures.model.TopTraderLongShortRatio;
 public class UnsignedClient
 {
 
+	/**
+	 *
+	 [
+	 1499040000000,      // Open time
+	 "0.01634790",       // Open
+	 "0.80000000",       // High
+	 "0.01575800",       // Low
+	 "0.01577100",       // Close
+	 "148976.11427815",  // Volume
+	 1499644799999,      // Close time
+	 "2434.19055334",    // Quote asset volume
+	 308,                // Number of trades
+	 "1756.87402397",    // Taker buy base asset volume
+	 "28.46694368",      // Taker buy quote asset volume
+	 "17928899.62484339" // Ignore.
+	 ]
+	 */
 	public static List<Candle> getKlines(String symbol, IntervalType interval, int limit, Long startTime) throws Exception
 	{
 		final String path = "/fapi/v1/klines";
@@ -84,6 +101,8 @@ public class UnsignedClient
 			kline.setVolume(new BigDecimal(entry[5]));
 			kline.setQuoteVolume(new BigDecimal(entry[7]));
 			kline.setCount(Long.valueOf(entry[8]));
+			kline.setTakerBuyVol(new BigDecimal(entry[9]));
+			kline.setTakerBuyQuoteVol(new BigDecimal(entry[10]));
 
 			lstResult.add(kline);
 		}
