@@ -6,6 +6,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +35,63 @@ import binance.futures.model.TopTraderLongShortRatio;
 
 public class UnsignedClient
 {
+	// Настройки таймаутов
+	private static int REQUEST_TIMEOUT_SECONDS = 30;
+	private static int CONNECT_TIMEOUT_SECONDS = 10;
+	
+	/**
+	 * Установить таймаут ожидания ответа от API (в секундах).
+	 * По умолчанию: 30 секунд
+	 * 
+	 * @param timeoutSeconds таймаут в секундах
+	 */
+	public static void setRequestTimeout(int timeoutSeconds) {
+		REQUEST_TIMEOUT_SECONDS = timeoutSeconds;
+	}
+	
+	/**
+	 * Установить таймаут подключения к API (в секундах).
+	 * По умолчанию: 10 секунд
+	 * 
+	 * @param timeoutSeconds таймаут в секундах
+	 */
+	public static void setConnectTimeout(int timeoutSeconds) {
+		CONNECT_TIMEOUT_SECONDS = timeoutSeconds;
+	}
+	
+	/**
+	 * Получить текущий таймаут ожидания ответа (в секундах)
+	 */
+	public static int getRequestTimeout() {
+		return REQUEST_TIMEOUT_SECONDS;
+	}
+	
+	/**
+	 * Получить текущий таймаут подключения (в секундах)
+	 */
+	public static int getConnectTimeout() {
+		return CONNECT_TIMEOUT_SECONDS;
+	}
+	
+	/**
+	 * Создает настроенный HttpClient с таймаутами
+	 */
+	private static HttpClient createHttpClient() {
+		return HttpClient.newBuilder()
+			.connectTimeout(Duration.ofSeconds(CONNECT_TIMEOUT_SECONDS))
+			.build();
+	}
+	
+	/**
+	 * Создает GET запрос с настроенным таймаутом
+	 */
+	private static HttpRequest createGetRequest(URI uri) {
+		return HttpRequest.newBuilder()
+			.uri(uri)
+			.timeout(Duration.ofSeconds(REQUEST_TIMEOUT_SECONDS))
+			.GET()
+			.build();
+	}
 
 	/**
 	 *
@@ -69,11 +127,8 @@ public class UnsignedClient
 
 		URI uri = target.getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .GET()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 		
@@ -120,11 +175,8 @@ public class UnsignedClient
 
 		URI uri = target.getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .GET()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -151,11 +203,8 @@ public class UnsignedClient
 
 		URI uri = target.getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .GET()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -182,11 +231,8 @@ public class UnsignedClient
 
 		URI uri = target.getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .GET()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 		
@@ -215,11 +261,8 @@ public class UnsignedClient
 
 		URI uri = target.getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .GET()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 		
@@ -247,11 +290,8 @@ public class UnsignedClient
 
 		URI uri = target.getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .GET()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 		
@@ -287,11 +327,8 @@ public class UnsignedClient
 
 		URI uri = target.getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .GET()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 		
@@ -327,11 +364,8 @@ public class UnsignedClient
 
 		URI uri = target.getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .GET()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 		
@@ -380,11 +414,8 @@ public class UnsignedClient
 
 		URI uri = target.getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .GET()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 		
@@ -446,11 +477,8 @@ public class UnsignedClient
 
 		URI uri = target.getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .GET()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 		
@@ -512,11 +540,8 @@ public class UnsignedClient
 
 		URI uri = target.getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .GET()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 		

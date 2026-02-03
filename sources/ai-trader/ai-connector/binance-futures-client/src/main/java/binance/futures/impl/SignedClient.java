@@ -1,8 +1,9 @@
 package binance.futures.impl;
 
-import java.net.URI;
+import java.time.Duration;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.URI;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
@@ -37,6 +38,10 @@ import binance.futures.model.PositionRisk;
 public class SignedClient {
 	private String apiKey;
 	private String secretKey;
+	
+	// Настройки таймаутов для экземпляра класса
+	private int requestTimeoutSeconds = 30;
+	private int connectTimeoutSeconds = 10;
 
 	public SignedClient(String apiKey, String secretKey) {
 		this.apiKey = apiKey;
@@ -45,6 +50,95 @@ public class SignedClient {
 
 	public static SignedClient create(String apiKey, String secretKey) {
 		return new SignedClient(apiKey, secretKey);
+	}
+	
+	// Методы для настройки таймаутов
+	
+	/**
+	 * Установить таймаут ожидания ответа от API (в секундах).
+	 * По умолчанию: 30 секунд
+	 * 
+	 * @param timeoutSeconds таймаут в секундах
+	 */
+	public void setRequestTimeout(int timeoutSeconds) {
+		this.requestTimeoutSeconds = timeoutSeconds;
+	}
+	
+	/**
+	 * Установить таймаут подключения к API (в секундах).
+	 * По умолчанию: 10 секунд
+	 * 
+	 * @param timeoutSeconds таймаут в секундах
+	 */
+	public void setConnectTimeout(int timeoutSeconds) {
+		this.connectTimeoutSeconds = timeoutSeconds;
+	}
+	
+	/**
+	 * Получить текущий таймаут ожидания ответа (в секундах)
+	 */
+	public int getRequestTimeout() {
+		return requestTimeoutSeconds;
+	}
+	
+	/**
+	 * Получить текущий таймаут подключения (в секундах)
+	 */
+	public int getConnectTimeout() {
+		return connectTimeoutSeconds;
+	}
+	
+	/**
+	 * Создает настроенный HttpClient с таймаутами для данного экземпляра
+	 */
+	private HttpClient createHttpClient() {
+		return HttpClient.newBuilder()
+			.connectTimeout(Duration.ofSeconds(connectTimeoutSeconds))
+			.build();
+	}
+	
+	/**
+	 * Создает GET запрос с настроенным таймаутом для данного экземпляра
+	 */
+	private HttpRequest createGetRequest(URI uri) {
+		return HttpRequest.newBuilder()
+			.uri(uri)
+			.timeout(Duration.ofSeconds(requestTimeoutSeconds))
+			.header("X-MBX-APIKEY", apiKey)
+			.GET()
+			.build();
+	}
+	
+	/**
+	 * Создает POST запрос с настроенным таймаутом для данного экземпляра
+	 */
+	private HttpRequest createPostRequest(URI uri, String body) {
+		return HttpRequest.newBuilder()
+			.uri(uri)
+			.timeout(Duration.ofSeconds(requestTimeoutSeconds))
+			.header("X-MBX-APIKEY", apiKey)
+			.header("Content-Type", "application/x-www-form-urlencoded")
+			.POST(HttpRequest.BodyPublishers.ofString(body))
+			.build();
+	}
+	
+	/**
+	 * Создает DELETE запрос с настроенным таймаутом для данного экземпляра
+	 */
+	private HttpRequest createDeleteRequest(URI uri, String body) {
+		HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+			.uri(uri)
+			.timeout(Duration.ofSeconds(requestTimeoutSeconds))
+			.header("X-MBX-APIKEY", apiKey);
+			
+		if (body != null && !body.isEmpty()) {
+			requestBuilder.method("DELETE", HttpRequest.BodyPublishers.ofString(body))
+				.header("Content-Type", "application/x-www-form-urlencoded");
+		} else {
+			requestBuilder.DELETE();
+		}
+		
+		return requestBuilder.build();
 	}
 
 	// --------------------------------------------------------------------
@@ -64,12 +158,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-				.uri(uri)
-				.header("X-MBX-APIKEY", apiKey)
-				.GET()
-				.build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -101,12 +191,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-				.uri(uri)
-				.header("X-MBX-APIKEY", apiKey)
-				.GET()
-				.build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -150,12 +236,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .header("X-MBX-APIKEY", apiKey)
-            .GET()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());		
 
@@ -188,12 +270,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 		
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .header("X-MBX-APIKEY", apiKey)
-            .GET()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());		
 
@@ -227,12 +305,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-				.uri(uri)
-				.header("X-MBX-APIKEY", apiKey)
-				.POST(HttpRequest.BodyPublishers.noBody())
-				.build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createPostRequest(uri, "");
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -260,12 +334,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .header("X-MBX-APIKEY", apiKey)
-            .GET()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -304,12 +374,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 		
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .header("X-MBX-APIKEY", apiKey)
-            .POST(HttpRequest.BodyPublishers.noBody())
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createPostRequest(uri, "");
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());		
 
@@ -339,12 +405,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .header("X-MBX-APIKEY", apiKey)
-            .GET()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -405,12 +467,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-				.uri(uri)
-				.header("X-MBX-APIKEY", apiKey)
-				.POST(HttpRequest.BodyPublishers.noBody())
-				.build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createPostRequest(uri, "");
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -482,12 +540,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-				.uri(uri)
-				.header("X-MBX-APIKEY", apiKey)
-				.POST(HttpRequest.BodyPublishers.noBody())
-				.build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createPostRequest(uri, "");
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -538,12 +592,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-				.uri(uri)
-				.header("X-MBX-APIKEY", apiKey)
-				.DELETE()
-				.build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createDeleteRequest(uri, null);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -575,12 +625,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-				.uri(uri)
-				.header("X-MBX-APIKEY", apiKey)
-				.GET()
-				.build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -629,12 +675,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-				.uri(uri)
-				.header("X-MBX-APIKEY", apiKey)
-				.GET()
-				.build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -686,12 +728,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .header("X-MBX-APIKEY", apiKey)
-            .DELETE()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createDeleteRequest(uri, null);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());		
 
@@ -732,12 +770,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-				.uri(uri)
-				.header("X-MBX-APIKEY", apiKey)
-				.DELETE()
-				.build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createDeleteRequest(uri, null);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -790,12 +824,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-				.uri(uri)
-				.header("X-MBX-APIKEY", apiKey)
-				.GET()
-				.build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -836,12 +866,8 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-				.uri(uri)
-				.header("X-MBX-APIKEY", apiKey)
-				.GET()
-				.build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createGetRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -861,7 +887,7 @@ public class SignedClient {
 
 	// --------------------------------------------------------------------
 
-	public String startUserDataStream() throws Exception 
+	public String startUserDataStream() throws Exception
 	{
 		final String path = "/fapi/v1/listenKey";
 
@@ -877,14 +903,10 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .header("X-MBX-APIKEY", apiKey)
-            .POST(HttpRequest.BodyPublishers.noBody())
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createPostRequest(uri, "");
 
-		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());		
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
 		if(response.statusCode() != 200)
 		{
@@ -900,10 +922,10 @@ public class SignedClient {
 			listenKey = node.get("listenKey").asText();
 		}
 
-		return listenKey;	
+		return listenKey;
 	}
-	
-	public String keepUserDataStream() throws Exception 
+
+	public String keepUserDataStream() throws Exception
 	{
 		final String path = "/fapi/v1/listenKey";
 
@@ -919,14 +941,10 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .header("X-MBX-APIKEY", apiKey)
-            .PUT(HttpRequest.BodyPublishers.noBody())
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createPostRequest(uri, "");
 
-		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());		
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
 		if(response.statusCode() != 200)
 		{
@@ -934,10 +952,10 @@ public class SignedClient {
 			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
-		return "OK";		
+		return "OK";
 	}
 
-	public String closeUserDataStream() throws Exception 
+	public String closeUserDataStream() throws Exception
 	{
 		final String path = "/fapi/v1/listenKey";
 
@@ -953,14 +971,10 @@ public class SignedClient {
 		String signature = Signer.createSignature(apiKey, secretKey, target.getUri().getQuery());
 		URI uri = target.queryParam("signature", signature).getUri();
 
-		HttpClient httpClient = HttpClient.newBuilder().build();
-		HttpRequest request = HttpRequest.newBuilder()
-            .uri(uri)
-            .header("X-MBX-APIKEY", apiKey)
-            .DELETE()
-            .build();
+		HttpClient httpClient = createHttpClient();
+		HttpRequest request = createDeleteRequest(uri, null);
 
-		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());		
+		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
 		if(response.statusCode() != 200)
 		{
@@ -968,7 +982,7 @@ public class SignedClient {
 			throw new BinanceException(responseStatus.getCode(), responseStatus.getMsg());
 		}
 
-		return "OK";		
+		return "OK";
 	}
 
 }
