@@ -112,33 +112,25 @@ public class SignedClient {
 	/**
 	 * Создает POST запрос с настроенным таймаутом для данного экземпляра
 	 */
-	private HttpRequest createPostRequest(URI uri, String body) {
+	private HttpRequest createPostRequest(URI uri) {
 		return HttpRequest.newBuilder()
-			.uri(uri)
-			.timeout(Duration.ofSeconds(requestTimeoutSeconds))
-			.header("X-MBX-APIKEY", apiKey)
-			.header("Content-Type", "application/x-www-form-urlencoded")
-			.POST(HttpRequest.BodyPublishers.ofString(body))
-			.build();
+				.uri(uri)
+				.timeout(Duration.ofSeconds(requestTimeoutSeconds))
+				.header("X-MBX-APIKEY", apiKey)
+				.POST(HttpRequest.BodyPublishers.noBody())
+				.build();
 	}
 	
 	/**
 	 * Создает DELETE запрос с настроенным таймаутом для данного экземпляра
 	 */
-	private HttpRequest createDeleteRequest(URI uri, String body) {
-		HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-			.uri(uri)
-			.timeout(Duration.ofSeconds(requestTimeoutSeconds))
-			.header("X-MBX-APIKEY", apiKey);
-			
-		if (body != null && !body.isEmpty()) {
-			requestBuilder.method("DELETE", HttpRequest.BodyPublishers.ofString(body))
-				.header("Content-Type", "application/x-www-form-urlencoded");
-		} else {
-			requestBuilder.DELETE();
-		}
-		
-		return requestBuilder.build();
+	private HttpRequest createDeleteRequest(URI uri) {
+		return HttpRequest.newBuilder()
+				.uri(uri)
+				.timeout(Duration.ofSeconds(requestTimeoutSeconds))
+				.header("X-MBX-APIKEY", apiKey)
+				.DELETE().
+				build();
 	}
 
 	// --------------------------------------------------------------------
@@ -306,7 +298,7 @@ public class SignedClient {
 		URI uri = target.queryParam("signature", signature).getUri();
 
 		HttpClient httpClient = createHttpClient();
-		HttpRequest request = createPostRequest(uri, "");
+		HttpRequest request = createPostRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -375,7 +367,7 @@ public class SignedClient {
 		URI uri = target.queryParam("signature", signature).getUri();
 		
 		HttpClient httpClient = createHttpClient();
-		HttpRequest request = createPostRequest(uri, "");
+		HttpRequest request = createPostRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());		
 
@@ -468,7 +460,7 @@ public class SignedClient {
 		URI uri = target.queryParam("signature", signature).getUri();
 
 		HttpClient httpClient = createHttpClient();
-		HttpRequest request = createPostRequest(uri, "");
+		HttpRequest request = createPostRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -541,7 +533,7 @@ public class SignedClient {
 		URI uri = target.queryParam("signature", signature).getUri();
 
 		HttpClient httpClient = createHttpClient();
-		HttpRequest request = createPostRequest(uri, "");
+		HttpRequest request = createPostRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -593,7 +585,7 @@ public class SignedClient {
 		URI uri = target.queryParam("signature", signature).getUri();
 
 		HttpClient httpClient = createHttpClient();
-		HttpRequest request = createDeleteRequest(uri, null);
+		HttpRequest request = createDeleteRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -701,6 +693,7 @@ public class SignedClient {
 		} catch (BinanceException e) {
 			// Если получили ошибку -4120, пытаемся использовать алго-endpoint
 			if (BinanceException.ALGO_ORDER_API_ERROR_CODE.equals(e.getErrCode()) || BinanceException.UNKNOWN_ORDER_API_ERROR_CODE.equals(e.getErrCode())) {
+				ApiLog.info(e.getMessage());
 				ApiLog.info("Switching to Algo Order API for cancel - OrderId: " + orderId + ", ClientOrderId: " + origClientOrderId);
 				return cancelAlgoOrder(symbol, orderId, origClientOrderId);
 			}
@@ -729,7 +722,7 @@ public class SignedClient {
 		URI uri = target.queryParam("signature", signature).getUri();
 
 		HttpClient httpClient = createHttpClient();
-		HttpRequest request = createDeleteRequest(uri, null);
+		HttpRequest request = createDeleteRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());		
 
@@ -771,7 +764,7 @@ public class SignedClient {
 		URI uri = target.queryParam("signature", signature).getUri();
 
 		HttpClient httpClient = createHttpClient();
-		HttpRequest request = createDeleteRequest(uri, null);
+		HttpRequest request = createDeleteRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -796,6 +789,7 @@ public class SignedClient {
 		} catch (BinanceException e) {
 			// Если получили ошибку -4120, пытаемся использовать алго-endpoint
 			if (BinanceException.ALGO_ORDER_API_ERROR_CODE.equals(e.getErrCode()) || BinanceException.NOT_EXISTING_ORDER_API_ERROR_CODE.equals(e.getErrCode())) {
+				ApiLog.info(e.getMessage());
 				ApiLog.info("Switching to Algo Order API for query - OrderId: " + orderId + ", ClientOrderId: " + origClientOrderId);
 				return queryAlgoOrder(symbol, orderId, origClientOrderId);
 			}
@@ -904,7 +898,7 @@ public class SignedClient {
 		URI uri = target.queryParam("signature", signature).getUri();
 
 		HttpClient httpClient = createHttpClient();
-		HttpRequest request = createPostRequest(uri, "");
+		HttpRequest request = createPostRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -942,7 +936,11 @@ public class SignedClient {
 		URI uri = target.queryParam("signature", signature).getUri();
 
 		HttpClient httpClient = createHttpClient();
-		HttpRequest request = createPostRequest(uri, "");
+		HttpRequest request = HttpRequest.newBuilder()
+				.uri(uri)
+				.header("X-MBX-APIKEY", apiKey)
+				.PUT(HttpRequest.BodyPublishers.noBody())
+				.build();
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -972,7 +970,7 @@ public class SignedClient {
 		URI uri = target.queryParam("signature", signature).getUri();
 
 		HttpClient httpClient = createHttpClient();
-		HttpRequest request = createDeleteRequest(uri, null);
+		HttpRequest request = createDeleteRequest(uri);
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
