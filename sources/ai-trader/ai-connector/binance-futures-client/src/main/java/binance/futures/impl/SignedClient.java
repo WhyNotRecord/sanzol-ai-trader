@@ -488,6 +488,7 @@ public class SignedClient {
 				.header("X-MBX-APIKEY", apiKey)
 				.POST(HttpRequest.BodyPublishers.noBody())
 				.build();
+		ApiLog.debug(uri.toString());
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
@@ -501,7 +502,9 @@ public class SignedClient {
 		}
 
 		String jsonString = response.body();
+		ApiLog.debug(jsonString);
 		jsonString = adaptAlgoOrder(jsonString);
+		ApiLog.debug(jsonString);
 		ObjectMapper mapper = new ObjectMapper();
 		Order order = mapper.readValue(jsonString, Order.class);
 
@@ -825,7 +828,6 @@ public class SignedClient {
 				.queryParam("recvWindow", recvWindow)
 				.queryParam("timestamp", timestamp);
 
-		// Для алго-ордеров используем orderId или origClientOrderId
 		if (orderId != null) {
 			target = target.queryParam("algoId", orderId);
 		}
@@ -844,6 +846,7 @@ public class SignedClient {
 				.build();
 
 		HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+		ApiLog.debug(uri.toString());
 
 		if (response.statusCode() != 200) {
 			ResponseStatus responseStatus = ResponseStatus.from(response.body());
@@ -851,7 +854,9 @@ public class SignedClient {
 		}
 
 		String jsonString = response.body();
+		ApiLog.debug(jsonString);
 		jsonString = adaptAlgoOrder(jsonString);
+		ApiLog.debug(jsonString);
 		ObjectMapper mapper = new ObjectMapper();
 		Order order = mapper.readValue(jsonString, Order.class);
 
