@@ -52,7 +52,7 @@ public class WsCandlestick extends WebSocketClient
 	@Override
 	public void onMessage(String message)
 	{
-		ApiLog.debug(message);
+		//ApiLog.debug(message);
 
 		ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		try
